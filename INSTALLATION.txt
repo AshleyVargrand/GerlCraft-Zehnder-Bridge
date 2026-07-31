@@ -1,0 +1,137 @@
+Zehnder ComfoAir Bridge - v0.9.7 - Schnellstart
+
+Ausfuehrliche Anleitung
+-----------------------
+
+Die vollstaendige, anfaengerfreundliche GitHub-Anleitung befindet sich in:
+
+docs/INSTALLATION.md
+
+Sie enthaelt Hardware, Sicherheit, USB-Upload, Setup-WLAN, Anschluss an die
+Zehnder, Home Assistant, OTA-Updates und Fehlerhilfe.
+
+Schnellstart
+------------
+
+Ein normaler Nutzer soll keine Zugangsdaten im Quellcode eintragen muessen.
+Er flasht die Firmware, verbindet sich mit dem Setup-WLAN und richtet die
+Bridge im Browser ein.
+
+1. Paket entpacken
+------------------
+
+Das Paket in einen neuen Projektordner entpacken und den Ordner in Visual
+Studio Code oeffnen.
+
+2. Firmware bauen
+-----------------
+
+Im PlatformIO-Terminal:
+
+pio run -e atoms3-zehnder
+
+3. Per USB flashen
+------------------
+
+AtomS3 Lite per USB anschliessen.
+
+pio run -e atoms3-zehnder -t upload
+
+Falls der USB-Upload nicht startet, den AtomS3 Lite in den Download-Modus
+setzen und den Upload wiederholen.
+
+4. Erstes Setup
+---------------
+
+Nach dem ersten Start gibt es noch keine gespeicherten WLAN-Daten. Die Bridge
+startet deshalb automatisch ein eigenes Setup-WLAN:
+
+WLAN:     Zehnder-Bridge-Setup
+Passwort: zehnder-setup
+Adresse: http://192.168.4.1
+
+Mit Handy oder Laptop mit diesem WLAN verbinden und im Browser oeffnen:
+
+http://192.168.4.1
+
+Danach "Konfiguration oeffnen" waehlen.
+
+5. Konfiguration eintragen
+--------------------------
+
+Eintragen:
+
+- WLAN-Name
+- WLAN-Passwort
+- MQTT-Broker
+- MQTT-Port
+- MQTT-Benutzername, falls benoetigt
+- MQTT-Passwort, falls benoetigt
+- Admin-/OTA-Passwort
+- Hostname
+- optionaler DNS-Name
+- sichtbarer Geraetename
+
+Speichern.
+
+6. Bridge neu starten
+---------------------
+
+Nach dem Speichern die Bridge neu starten. Danach verbindet sie sich mit dem
+Heimnetz.
+
+Standardadresse:
+
+http://zehnder-bridge.local
+
+Bei eigenem Hostnamen entsprechend:
+
+http://dein-hostname.local
+
+Wenn ein eigener DNS-Name verwendet wird, muss dieser im Router oder lokalen
+DNS-Server auf die IP-Adresse der Bridge zeigen.
+
+7. Geschuetzte Konfiguration im Betrieb
+---------------------------------------
+
+Im normalen Heimnetz ist die Konfigurationsseite geschuetzt:
+
+Benutzer: admin
+Passwort: gespeichertes Admin-/OTA-Passwort
+
+Die Konfiguration liegt dauerhaft im ESP32. Sie kann spaeter ohne erneutes
+Kompilieren ueber /config geaendert werden.
+
+8. OTA-Updates
+--------------
+
+Nach erfolgreicher Einrichtung kann OTA genutzt werden.
+
+In platformio.ini muss upload_port zur aktuellen IP-Adresse der Bridge passen.
+Das OTA-Passwort ist das gespeicherte Admin-/OTA-Passwort.
+
+pio run -e atoms3-zehnder-ota -t upload
+
+9. Optional fuer Entwickler
+---------------------------
+
+Wer feste Fallback-Werte direkt in seine eigene Firmware bauen moechte, kann
+weiterhin diese Dateien anlegen:
+
+include/secrets.h
+include/user_config.h
+
+Normale Nutzer brauchen diese Dateien nicht.
+
+Home Assistant
+--------------
+
+MQTT-Topics und Unique-IDs wurden nicht geaendert. Bestehende Entitaeten
+bleiben erhalten.
+
+Diagnose
+--------
+
+http://zehnder-bridge.local/diagnostics
+http://zehnder-bridge.local/api/diagnostics
+http://zehnder-bridge.local/diagnostics.json

@@ -1,0 +1,52 @@
+name: Firmware bauen
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v6
+
+      - name: Python einrichten
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: PlatformIO installieren
+        run: python -m pip install platformio==6.1.19
+
+      - name: Repository pruefen
+        run: python scripts/check_repository.py
+
+      - name: Reproduzierbaren Zeitstempel setzen
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
+      - name: Firmware bauen und paketieren
+        run: pio run -e atoms3-zehnder
+
+      - name: Release-Paket pruefen
+        run: python scripts/validate_release.py
+
+      - name: Firmware-Artefakte speichern
+        uses: actions/upload-artifact@v4
+        with:
+          name: zehnder-comfoair-bridge-${{ github.sha }}
+          path: |
+            dist/zehnder-comfoair-bridge-v*.zip
+            dist/zehnder-comfoair-bridge-v*.sha256
+            dist/browser-installer
+          if-no-files-found: error
+          retention-days: 30

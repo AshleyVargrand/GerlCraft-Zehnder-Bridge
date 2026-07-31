@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Zehnder ComfoAir Bridge installieren</title>
+    <script
+        type="module"
+        src="https://unpkg.com/esp-web-tools@10.2.1/dist/web/install-button.js?module"
+    ></script>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #162126;
+            --muted: #5f6f76;
+            --line: #d8e0e3;
+            --panel: #ffffff;
+            --canvas: #f3f6f7;
+            --primary: #087c75;
+            --primary-hover: #056a64;
+            --warning: #8a4b08;
+            --warning-bg: #fff4df;
+            --esp-tools-button-color: var(--primary);
+            --esp-tools-button-text-color: #ffffff;
+            --esp-tools-button-border-radius: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--canvas);
+            color: var(--ink);
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        header {
+            border-bottom: 1px solid var(--line);
+            background: #ffffff;
+        }
+
+        .header-inner,
+        main,
+        footer {
+            width: min(760px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .header-inner {
+            padding: 24px 0 20px;
+        }
+
+        .product {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            margin-top: 4px;
+            color: var(--muted);
+        }
+
+        main {
+            padding: 28px 0 36px;
+        }
+
+        .install-panel {
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        .version-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        h1,
+        h2 {
+            margin: 0;
+            letter-spacing: 0;
+        }
+
+        h1 {
+            font-size: 25px;
+        }
+
+        h2 {
+            margin-bottom: 14px;
+            font-size: 18px;
+        }
+
+        .version {
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        esp-web-install-button {
+            display: block;
+            width: 100%;
+        }
+
+        .install-button {
+            width: 100%;
+            min-height: 54px;
+            border: 0;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #ffffff;
+            font: inherit;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .install-button:hover {
+            background: var(--primary-hover);
+        }
+
+        .unsupported {
+            display: block;
+            padding: 14px;
+            border: 1px solid #d7a261;
+            border-radius: 6px;
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .warning {
+            margin: 18px 0 0;
+            padding: 12px 14px;
+            border-left: 4px solid #cb7a17;
+            background: var(--warning-bg);
+            color: #633807;
+        }
+
+        .steps {
+            margin-top: 22px;
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        ol {
+            margin: 0;
+            padding-left: 22px;
+        }
+
+        li + li {
+            margin-top: 10px;
+        }
+
+        code {
+            padding: 2px 5px;
+            border-radius: 4px;
+            background: #eaf0f1;
+            color: #24363d;
+            font-family: Consolas, monospace;
+        }
+
+        footer {
+            padding: 0 0 32px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        footer a {
+            color: var(--primary);
+        }
+
+        @media (max-width: 560px) {
+            .version-row {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .install-panel,
+            .steps {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <p class="product">Zehnder ComfoAir Bridge</p>
+            <div class="subtitle">Installer fuer M5Stack AtomS3 Lite</div>
+        </div>
+    </header>
+
+    <main>
+        <section class="install-panel">
+            <div class="version-row">
+                <h1>Firmware installieren</h1>
+                <span class="version">Version 0.9.8</span>
+            </div>
+
+            <esp-web-install-button manifest="manifest.json">
+                <button class="install-button" slot="activate">
+                    AtomS3 verbinden und installieren
+                </button>
+                <span class="unsupported" slot="unsupported">
+                    Bitte diese Seite mit Google Chrome oder Microsoft Edge
+                    auf einem Computer oeffnen.
+                </span>
+                <span class="unsupported" slot="not-allowed">
+                    Der Browser darf nicht auf den seriellen Anschluss
+                    zugreifen. Bitte die Seite ueber HTTPS oeffnen.
+                </span>
+            </esp-web-install-button>
+
+            <p class="warning">
+                Den AtomS3 waehrend der Installation von der Zehnder-Anlage
+                und vom ComfoNet trennen.
+            </p>
+        </section>
+
+        <section class="steps">
+            <h2>Nach der Installation</h2>
+            <ol>
+                <li>Den AtomS3 neu starten.</li>
+                <li>Mit dem WLAN <code>Zehnder-Bridge-Setup</code> verbinden.</li>
+                <li>Das WLAN-Passwort <code>zehnder-setup</code> verwenden.</li>
+                <li><code>http://192.168.4.1</code> im Browser oeffnen.</li>
+                <li>WLAN, MQTT und ein eigenes Admin-Passwort eintragen.</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <a href="build-info.json">Build-Informationen</a>
+        &nbsp;|&nbsp;
+        <a href="legal/THIRD_PARTY_NOTICES.md">Drittanbieterhinweise</a>
+        &nbsp;|&nbsp;
+        <a href="https://github.com/AshleyVargrand/GerlCraft-Zehnder-Bridge">
+            Quellcode
+        </a>
+    </footer>
+</body>
+</html>
