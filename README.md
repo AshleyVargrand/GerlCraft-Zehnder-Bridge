@@ -10,17 +10,18 @@ Die vollstaendige Anleitung fuer Einsteiger befindet sich hier:
 
 Ab v0.9.8 kann ein neuer AtomS3 Lite ohne Visual Studio Code direkt mit dem
 [Browser-Installer](https://ashleyvargrand.github.io/GerlCraft-Zehnder-Bridge/)
-geflasht werden. Der Installer wird bereitgestellt, sobald GitHub Pages fuer
-das Repository aktiviert wurde.
+geflasht werden. Dies ist der empfohlene Installationsweg fuer normale Nutzer.
 
 Kurzablauf:
 
-1. Projekt herunterladen und in Visual Studio Code mit PlatformIO oeffnen.
-2. Mit `pio run -e atoms3-zehnder` bauen.
-3. Mit `pio run -e atoms3-zehnder -t upload` per USB flashen.
-4. Mit dem WLAN `Zehnder-Bridge-Setup` verbinden.
-5. `http://192.168.4.1` oeffnen und WLAN sowie MQTT eintragen.
-6. Bridge neu starten und erst danach spannungsfrei mit dem ComfoNet
+1. AtomS3 Lite mit einem USB-C-Datenkabel am Computer anschliessen.
+2. Browser-Installer in Chrome oder Edge oeffnen.
+3. AtomS3 verbinden und die Installation starten.
+4. Falls die Verbindung scheitert, die Taste etwa zwei Sekunden halten, bis
+   die interne LED gruen leuchtet, und die Installation wiederholen.
+5. Mit dem WLAN `Zehnder-Bridge-Setup` verbinden.
+6. `http://192.168.4.1` oeffnen und WLAN sowie MQTT eintragen.
+7. Bridge neu starten und erst danach spannungsfrei mit dem ComfoNet
    verbinden.
 
 ## Unterstuetzter Stand

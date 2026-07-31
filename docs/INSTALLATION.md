@@ -36,6 +36,22 @@ PlatformIO erforderlich:
 7. Nach erfolgreicher Installation bei Abschnitt 5 dieser Anleitung
    fortfahren.
 
+### Falls der Browser den AtomS3 nicht initialisieren kann
+
+Erscheint `Failed to initialize`, den AtomS3 Lite in den Download-Modus
+versetzen:
+
+1. Serielle Monitore und PlatformIO in Visual Studio Code schliessen.
+2. Den AtomS3 Lite direkt am Computer anschliessen, moeglichst ohne USB-Hub.
+3. Die Taste am AtomS3 Lite etwa zwei Sekunden gedrueckt halten.
+4. Sobald die interne LED gruen leuchtet, die Taste loslassen.
+5. Die Installationsseite neu laden und erneut installieren.
+6. Den neu erschienenen Espressif- beziehungsweise USB-JTAG-Anschluss
+   auswaehlen.
+
+Falls weiterhin kein Anschluss erscheint, ein anderes USB-C-Datenkabel oder
+einen anderen USB-Port verwenden. Reine Ladekabel funktionieren nicht.
+
 Der folgende PlatformIO-Weg bleibt fuer Entwickler und eigene Builds
 vollstaendig erhalten.
 
@@ -105,6 +121,9 @@ Auch hier muss am Ende `SUCCESS` erscheinen.
 2. Einen anderen USB-Port probieren.
 3. Den AtomS3 Lite in den Download-Modus versetzen.
 4. Den Upload erneut starten.
+
+Fuer den Download-Modus die Taste etwa zwei Sekunden halten, bis die interne
+LED gruen leuchtet, und dann loslassen.
 
 Die Meldung `Failed to connect to ESP32-S3` betrifft nur den USB-Upload und
 bedeutet nicht, dass der Firmware-Build fehlerhaft war.
@@ -266,6 +285,15 @@ Die Schaltflaeche zum Zuruecksetzen loescht die gespeicherte Konfiguration.
 Nach dem Neustart startet wieder das WLAN `Zehnder-Bridge-Setup`.
 
 ## Fehlerhilfe
+
+### Browser-Installer meldet `Failed to initialize`
+
+- Alle seriellen Monitore und PlatformIO-Terminals schliessen.
+- Den AtomS3 Lite in den Download-Modus versetzen: Taste etwa zwei Sekunden
+  halten, bis die interne LED gruen leuchtet, dann loslassen.
+- Die Installationsseite neu laden und den neu erschienenen Anschluss
+  auswaehlen.
+- Bei Bedarf USB-C-Datenkabel und USB-Port wechseln.
 
 ### Das Setup-WLAN erscheint nicht
 

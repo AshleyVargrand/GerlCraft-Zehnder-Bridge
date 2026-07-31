@@ -1,4 +1,4 @@
-Zehnder ComfoAir Bridge - v0.9.7 - Schnellstart
+Zehnder ComfoAir Bridge - v0.9.8 - Schnellstart
 
 Ausfuehrliche Anleitung
 -----------------------
@@ -10,37 +10,38 @@ docs/INSTALLATION.md
 Sie enthaelt Hardware, Sicherheit, USB-Upload, Setup-WLAN, Anschluss an die
 Zehnder, Home Assistant, OTA-Updates und Fehlerhilfe.
 
-Schnellstart
-------------
+Schnellstart ueber den Browser
+------------------------------
 
 Ein normaler Nutzer soll keine Zugangsdaten im Quellcode eintragen muessen.
-Er flasht die Firmware, verbindet sich mit dem Setup-WLAN und richtet die
-Bridge im Browser ein.
+Er installiert die Firmware im Browser, verbindet sich mit dem Setup-WLAN und
+richtet die Bridge dort ein. Visual Studio Code und PlatformIO sind dafuer
+nicht erforderlich.
 
-1. Paket entpacken
-------------------
+1. Browser-Installer oeffnen
+---------------------------
 
-Das Paket in einen neuen Projektordner entpacken und den Ordner in Visual
-Studio Code oeffnen.
+In Google Chrome oder Microsoft Edge oeffnen:
 
-2. Firmware bauen
------------------
+https://ashleyvargrand.github.io/GerlCraft-Zehnder-Bridge/
 
-Im PlatformIO-Terminal:
+2. Firmware installieren
+------------------------
 
-pio run -e atoms3-zehnder
+AtomS3 Lite mit einem USB-C-Datenkabel anschliessen und im Installer
+`AtomS3 verbinden und installieren` waehlen.
 
-3. Per USB flashen
-------------------
+Falls `Failed to initialize` erscheint:
 
-AtomS3 Lite per USB anschliessen.
+- Serielle Monitore und PlatformIO schliessen.
+- Taste am Atom etwa zwei Sekunden halten.
+- Sobald die interne LED gruen leuchtet, Taste loslassen.
+- Installationsseite neu laden und erneut installieren.
+- Bei Bedarf ein anderes USB-C-Datenkabel oder einen anderen Port verwenden.
 
-pio run -e atoms3-zehnder -t upload
+Bei einer Erstinstallation das Loeschen vorhandener Einstellungen bestaetigen.
 
-Falls der USB-Upload nicht startet, den AtomS3 Lite in den Download-Modus
-setzen und den Upload wiederholen.
-
-4. Erstes Setup
+3. Erstes Setup
 ---------------
 
 Nach dem ersten Start gibt es noch keine gespeicherten WLAN-Daten. Die Bridge
@@ -56,7 +57,7 @@ http://192.168.4.1
 
 Danach "Konfiguration oeffnen" waehlen.
 
-5. Konfiguration eintragen
+4. Konfiguration eintragen
 --------------------------
 
 Eintragen:
@@ -74,7 +75,7 @@ Eintragen:
 
 Speichern.
 
-6. Bridge neu starten
+5. Bridge neu starten
 ---------------------
 
 Nach dem Speichern die Bridge neu starten. Danach verbindet sie sich mit dem
@@ -91,7 +92,7 @@ http://dein-hostname.local
 Wenn ein eigener DNS-Name verwendet wird, muss dieser im Router oder lokalen
 DNS-Server auf die IP-Adresse der Bridge zeigen.
 
-7. Geschuetzte Konfiguration im Betrieb
+6. Geschuetzte Konfiguration im Betrieb
 ---------------------------------------
 
 Im normalen Heimnetz ist die Konfigurationsseite geschuetzt:
@@ -102,7 +103,7 @@ Passwort: gespeichertes Admin-/OTA-Passwort
 Die Konfiguration liegt dauerhaft im ESP32. Sie kann spaeter ohne erneutes
 Kompilieren ueber /config geaendert werden.
 
-8. OTA-Updates
+7. OTA-Updates
 --------------
 
 Nach erfolgreicher Einrichtung kann OTA genutzt werden.
@@ -112,7 +113,7 @@ Das OTA-Passwort ist das gespeicherte Admin-/OTA-Passwort.
 
 pio run -e atoms3-zehnder-ota -t upload
 
-9. Optional fuer Entwickler
+8. Optional fuer Entwickler
 ---------------------------
 
 Wer feste Fallback-Werte direkt in seine eigene Firmware bauen moechte, kann
@@ -122,6 +123,10 @@ include/secrets.h
 include/user_config.h
 
 Normale Nutzer brauchen diese Dateien nicht.
+
+Entwickler koennen den Quellcode weiterhin mit PlatformIO bauen und per USB
+oder OTA uebertragen. Die vollstaendigen Befehle stehen in
+docs/INSTALLATION.md.
 
 Home Assistant
 --------------
