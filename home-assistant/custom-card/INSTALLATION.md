@@ -5,6 +5,10 @@ Anlagenansicht. Sie verwendet ausschliesslich die von der Bridge bereits per
 MQTT Discovery angelegten Home-Assistant-Entitaeten. Die Karte sendet keine
 Befehle an die Lueftungsanlage.
 
+## Vorschau
+
+![GerlCraft Zehnder Card in Home Assistant](gerlcraft-zehnder-card-preview.png)
+
 ## Installation
 
 1. Die Datei `gerlcraft-zehnder-card.js` nach

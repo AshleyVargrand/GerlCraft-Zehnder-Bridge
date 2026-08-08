@@ -139,6 +139,8 @@ Enthalten sind:
 - eine Schritt-fuer-Schritt-Anleitung zur Installation und Anpassung der
   Entity-IDs.
 
+![Vorschau der GerlCraft Zehnder Card](home-assistant/custom-card/gerlcraft-zehnder-card-preview.png)
+
 Das Dashboard-Paket kann außerdem direkt auf der
 [Browser-Installer-Seite](https://ashleyvargrand.github.io/GerlCraft-Zehnder-Bridge/)
 heruntergeladen werden.

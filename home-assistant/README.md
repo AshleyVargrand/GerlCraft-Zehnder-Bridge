@@ -19,6 +19,8 @@ Die vollstaendige Einrichtung steht in
 [`custom-card/INSTALLATION.md`](custom-card/INSTALLATION.md). Die vorbereitete
 Seite fuer ein bestehendes Dashboard liegt in `view-custom-card.yaml`.
 
+![Vorschau der GerlCraft Zehnder Card](custom-card/gerlcraft-zehnder-card-preview.png)
+
 ### `dashboard-native.yaml`
 
 - keine Zusatzinstallation erforderlich
