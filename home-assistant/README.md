@@ -33,6 +33,15 @@ Die animierte Variante ist fuer `button-card` 7.0 oder neuer erstellt.
 - `view-animated.yaml` benoetigt `button-card`, aber keine globale
   `button_card_templates`-Konfiguration
 
+### `view-animated-v2.yaml` (Studio-Vorschau)
+
+- kann parallel zur bisherigen Seite getestet werden
+- verwendet den eigenen URL-Pfad `zehnder-v2`
+- zeigt die vier Luftwege als zusammenhaengende Anlagenansicht
+- ordnet Betrieb, Effizienz und Wartung in ruhigen Kennzahlenbloecken an
+- behandelt nicht verfuegbare Rueckgewinnungswerte als normalen Betriebszustand
+- benoetigt `button-card` 7.0 oder neuer
+
 ## Seite zu einem bestehenden Dashboard hinzufuegen
 
 1. Das vorhandene Dashboard oeffnen.
@@ -60,6 +69,10 @@ path: zehnder-bridge
 
 Fuer die animierte Einzelansicht muss `Button Card` vorher ueber HACS
 installiert sein.
+
+Zum unverbindlichen Vergleich kann stattdessen `view-animated-v2.yaml` am Ende
+der `views:`-Liste eingefuegt werden. Sie erscheint als separater Reiter
+`Zehnder Studio` und ersetzt keine vorhandene Seite.
 
 ## Komplettes natives Dashboard installieren
 

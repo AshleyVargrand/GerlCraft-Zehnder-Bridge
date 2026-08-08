@@ -131,6 +131,7 @@ def package_dashboard(site_dir, release_dir):
         dashboard_source / "dashboard-animated.yaml",
         dashboard_source / "view-native.yaml",
         dashboard_source / "view-animated.yaml",
+        dashboard_source / "view-animated-v2.yaml",
     )
 
     for required_file in required_files:

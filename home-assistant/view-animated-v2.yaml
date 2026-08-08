@@ -1,0 +1,484 @@
+# Zehnder ComfoAir Bridge - professionelle Vorschauansicht
+# Benoetigt custom:button-card 7.0 oder neuer.
+# Die Ansicht kann parallel zur bisherigen Zehnder-Ansicht getestet werden.
+
+  - title: Zehnder Studio
+    path: zehnder-v2
+    icon: mdi:air-filter
+    show_icon_and_title: true
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        title: Luftführung
+        cards:
+          - type: custom:button-card
+            entity: sensor.zehnder_comfoair_q350_lufterstufe
+            name: Zehnder ComfoAir Q
+            icon: mdi:fan
+            show_icon: true
+            show_name: true
+            show_state: true
+            show_label: true
+            tap_action:
+              action: more-info
+            hold_action:
+              action: none
+            rotate: |
+              [[[
+                return states['binary_sensor.zehnder_comfoair_q350_verbindung']?.state === 'on';
+              ]]]
+            state_display: |
+              [[[
+                return `Lüfterstufe ${entity?.state ?? '–'}`;
+              ]]]
+            label: |
+              [[[
+                return states['sensor.zehnder_comfoair_q350_betriebsmodus']?.state ?? '–';
+              ]]]
+            custom_fields:
+              connection: |
+                [[[
+                  const online = states['binary_sensor.zehnder_comfoair_q350_verbindung']?.state === 'on';
+                  return `<span class="status-pill ${online ? 'online' : 'offline'}">${online ? 'Verbunden' : 'Getrennt'}</span>`;
+                ]]]
+              airflow: |
+                [[[
+                  const supply = states['sensor.zehnder_comfoair_q350_zuluftvolumenstrom']?.state ?? '–';
+                  const exhaust = states['sensor.zehnder_comfoair_q350_abluftvolumenstrom']?.state ?? '–';
+                  return `<span class="hero-value">${supply}</span> / ${exhaust} m³/h`;
+                ]]]
+              power: |
+                [[[
+                  const value = states['sensor.zehnder_comfoair_q350_leistungsaufnahme']?.state ?? '–';
+                  return `<span class="hero-value">${value}</span> W`;
+                ]]]
+            grid_options:
+              columns: 12
+              rows: 4
+            styles:
+              card:
+                - height: 100%
+                - border-radius: 8px
+                - padding: 20px
+                - background: var(--ha-card-background, var(--card-background-color))
+                - border: 1px solid rgba(0, 137, 123, 0.38)
+                - box-shadow: none
+              grid:
+                - grid-template-areas: '"i n connection" "i s l" "i airflow power"'
+                - grid-template-columns: 76px 1fr min-content
+                - grid-template-rows: min-content min-content 1fr
+                - column-gap: 16px
+              icon:
+                - width: 56px
+                - color: var(--teal-color)
+              img_cell:
+                - align-self: center
+                - justify-self: center
+                - width: 68px
+                - height: 68px
+                - border-radius: 50%
+                - background: rgba(0, 137, 123, 0.14)
+              name:
+                - justify-self: start
+                - align-self: end
+                - font-size: 20px
+                - font-weight: 600
+                - letter-spacing: 0
+              state:
+                - justify-self: start
+                - font-size: 15px
+                - font-weight: 600
+              label:
+                - justify-self: start
+                - font-size: 13px
+                - color: var(--secondary-text-color)
+              custom_fields:
+                connection:
+                  - justify-self: end
+                  - align-self: start
+                airflow:
+                  - justify-self: start
+                  - align-self: end
+                  - color: var(--secondary-text-color)
+                  - font-size: 13px
+                power:
+                  - justify-self: end
+                  - align-self: end
+                  - color: var(--secondary-text-color)
+                  - font-size: 13px
+            extra_styles: |
+              .status-pill {
+                display: inline-flex;
+                align-items: center;
+                min-height: 26px;
+                padding: 0 10px;
+                border-radius: 13px;
+                font-size: 12px;
+                font-weight: 600;
+              }
+              .status-pill.online {
+                color: var(--success-color);
+                background: color-mix(in srgb, var(--success-color) 14%, transparent);
+              }
+              .status-pill.offline {
+                color: var(--error-color);
+                background: color-mix(in srgb, var(--error-color) 14%, transparent);
+              }
+              .hero-value {
+                color: var(--primary-text-color);
+                font-weight: 700;
+              }
+
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            tap_action:
+              action: none
+            hold_action:
+              action: none
+            custom_fields:
+              outdoor: |
+                [[[
+                  const value = states['sensor.zehnder_comfoair_q350_aussenlufttemperatur']?.state ?? '–';
+                  return `<div class="air-node outdoor"><ha-icon icon="mdi:weather-windy"></ha-icon><span>Außenluft</span><strong>${value} °C</strong></div>`;
+                ]]]
+              intake: |
+                [[[
+                  return '<div class="air-path to-right"><i></i><i></i><i></i></div>';
+                ]]]
+              core: |
+                [[[
+                  const online = states['binary_sensor.zehnder_comfoair_q350_verbindung']?.state === 'on';
+                  const bypass = states['sensor.zehnder_comfoair_q350_bypass_offnung']?.state ?? '–';
+                  return `<div class="air-core ${online ? 'running' : ''}"><ha-icon icon="mdi:fan"></ha-icon><span>Wärmetauscher</span><small>Bypass ${bypass} %</small></div>`;
+                ]]]
+              delivery: |
+                [[[
+                  return '<div class="air-path to-right"><i></i><i></i><i></i></div>';
+                ]]]
+              supply: |
+                [[[
+                  const value = states['sensor.zehnder_comfoair_q350_zulufttemperatur']?.state ?? '–';
+                  return `<div class="air-node supply"><ha-icon icon="mdi:home-import-outline"></ha-icon><span>Zuluft</span><strong>${value} °C</strong></div>`;
+                ]]]
+              exhaust: |
+                [[[
+                  const value = states['sensor.zehnder_comfoair_q350_fortlufttemperatur']?.state ?? '–';
+                  return `<div class="air-node exhaust"><ha-icon icon="mdi:thermometer-chevron-down"></ha-icon><span>Fortluft</span><strong>${value} °C</strong></div>`;
+                ]]]
+              discharge: |
+                [[[
+                  return '<div class="air-path to-left"><i></i><i></i><i></i></div>';
+                ]]]
+              returnflow: |
+                [[[
+                  return '<div class="air-path to-left"><i></i><i></i><i></i></div>';
+                ]]]
+              extract: |
+                [[[
+                  const value = states['sensor.zehnder_comfoair_q350_ablufttemperatur']?.state ?? '–';
+                  return `<div class="air-node extract"><ha-icon icon="mdi:home-export-outline"></ha-icon><span>Abluft</span><strong>${value} °C</strong></div>`;
+                ]]]
+            grid_options:
+              columns: 12
+              rows: 6
+            styles:
+              card:
+                - height: 100%
+                - border-radius: 8px
+                - padding: 22px 16px
+                - box-shadow: none
+              grid:
+                - grid-template-areas: '"outdoor intake core delivery supply" "exhaust discharge core returnflow extract"'
+                - grid-template-columns: 92px minmax(34px, 1fr) 104px minmax(34px, 1fr) 92px
+                - grid-template-rows: 1fr 1fr
+                - column-gap: 8px
+                - row-gap: 18px
+              custom_fields:
+                outdoor:
+                  - align-self: center
+                intake:
+                  - align-self: center
+                core:
+                  - align-self: center
+                delivery:
+                  - align-self: center
+                supply:
+                  - align-self: center
+                exhaust:
+                  - align-self: center
+                discharge:
+                  - align-self: center
+                returnflow:
+                  - align-self: center
+                extract:
+                  - align-self: center
+            extra_styles: |
+              .air-node {
+                display: grid;
+                justify-items: center;
+                gap: 3px;
+                text-align: center;
+                color: var(--secondary-text-color);
+                font-size: 11px;
+                letter-spacing: 0;
+              }
+              .air-node ha-icon {
+                width: 26px;
+                color: var(--secondary-text-color);
+              }
+              .air-node strong {
+                color: var(--primary-text-color);
+                font-size: 16px;
+                font-weight: 650;
+                white-space: nowrap;
+              }
+              .air-node.outdoor ha-icon,
+              .air-node.supply ha-icon { color: var(--info-color); }
+              .air-node.extract ha-icon { color: var(--warning-color); }
+              .air-node.exhaust ha-icon { color: var(--deep-orange-color); }
+              .air-core {
+                display: grid;
+                justify-items: center;
+                gap: 4px;
+                padding: 14px 8px;
+                border: 1px solid var(--divider-color);
+                border-radius: 8px;
+                background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
+                text-align: center;
+              }
+              .air-core ha-icon {
+                width: 36px;
+                color: var(--teal-color);
+              }
+              .air-core.running ha-icon {
+                animation: hvac-fan 3.2s linear infinite;
+              }
+              .air-core span {
+                color: var(--primary-text-color);
+                font-size: 11px;
+                font-weight: 600;
+              }
+              .air-core small {
+                color: var(--secondary-text-color);
+                font-size: 10px;
+              }
+              .air-path {
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                height: 26px;
+                overflow: hidden;
+                color: var(--teal-color);
+                border-top: 1px solid color-mix(in srgb, var(--teal-color) 34%, transparent);
+              }
+              .air-path i {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: currentColor;
+                opacity: 0.25;
+                animation: hvac-flow 1.8s ease-in-out infinite;
+              }
+              .air-path i:nth-child(2) { animation-delay: 0.3s; }
+              .air-path i:nth-child(3) { animation-delay: 0.6s; }
+              .air-path.to-left i { animation-direction: reverse; }
+              @keyframes hvac-fan {
+                to { transform: rotate(360deg); }
+              }
+              @keyframes hvac-flow {
+                0%, 100% { transform: translateX(-4px); opacity: 0.2; }
+                50% { transform: translateX(4px); opacity: 0.9; }
+              }
+              @media (max-width: 600px) {
+                #container {
+                  grid-template-columns: 64px minmax(18px, 1fr) 72px minmax(18px, 1fr) 64px !important;
+                  column-gap: 4px !important;
+                }
+                .air-node strong { font-size: 13px; }
+                .air-node span { font-size: 10px; }
+                .air-core span { display: none; }
+              }
+
+          - type: history-graph
+            title: Temperaturverlauf · 24 Stunden
+            hours_to_show: 24
+            entities:
+              - entity: sensor.zehnder_comfoair_q350_aussenlufttemperatur
+                name: Außenluft
+              - entity: sensor.zehnder_comfoair_q350_zulufttemperatur
+                name: Zuluft
+              - entity: sensor.zehnder_comfoair_q350_ablufttemperatur
+                name: Abluft
+              - entity: sensor.zehnder_comfoair_q350_fortlufttemperatur
+                name: Fortluft
+            grid_options:
+              columns: 12
+              rows: 5
+
+      - type: grid
+        title: Betrieb und Wartung
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            tap_action:
+              action: none
+            hold_action:
+              action: none
+            custom_fields:
+              content: |
+                [[[
+                  const bridge = states['sensor.zehnder_comfoair_q350_bridge_gesundheit']?.state ?? '–';
+                  const filter = states['sensor.zehnder_comfoair_q350_filterstatus']?.state ?? '–';
+                  const cooling = states['binary_sensor.zehnder_comfoair_q350_freie_kuhlung']?.state === 'on';
+                  const bypass = states['sensor.zehnder_comfoair_q350_bypass_offnung']?.state ?? '–';
+                  const item = (icon, label, value, tone) => `<div class="status-item ${tone}"><ha-icon icon="${icon}"></ha-icon><div><span>${label}</span><strong>${value}</strong></div></div>`;
+                  return `<div class="status-grid">${item('mdi:heart-pulse', 'Bridge', bridge, bridge === 'OK' ? 'good' : 'bad')}${item('mdi:air-filter', 'Filter', filter, filter === 'OK' ? 'good' : 'warn')}${item('mdi:snowflake-thermometer', 'Freie Kühlung', cooling ? 'Aktiv' : 'Inaktiv', cooling ? 'cool' : 'quiet')}${item('mdi:valve-open', 'Bypass', `${bypass} %`, Number(bypass) > 10 ? 'warn' : 'quiet')}</div>`;
+                ]]]
+            grid_options:
+              columns: 12
+              rows: 4
+            styles:
+              card:
+                - height: 100%
+                - border-radius: 8px
+                - padding: 16px
+                - box-shadow: none
+              custom_fields:
+                content:
+                  - width: 100%
+            extra_styles: |
+              .status-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+              }
+              .status-item {
+                display: grid;
+                grid-template-columns: 34px 1fr;
+                align-items: center;
+                min-height: 58px;
+                padding: 10px;
+                border: 1px solid var(--divider-color);
+                border-radius: 8px;
+              }
+              .status-item ha-icon { width: 24px; color: var(--secondary-text-color); }
+              .status-item div { display: grid; gap: 2px; min-width: 0; }
+              .status-item span { color: var(--secondary-text-color); font-size: 11px; }
+              .status-item strong { color: var(--primary-text-color); font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
+              .status-item.good ha-icon { color: var(--success-color); }
+              .status-item.bad ha-icon { color: var(--error-color); }
+              .status-item.warn ha-icon { color: var(--warning-color); }
+              .status-item.cool ha-icon { color: var(--info-color); }
+
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            tap_action:
+              action: none
+            hold_action:
+              action: none
+            custom_fields:
+              heading: Luftleistung
+              metrics: |
+                [[[
+                  const metric = (label, entityId, unit) => {
+                    const value = states[entityId]?.state ?? '–';
+                    return `<div class="metric"><span>${label}</span><strong>${value}<small>${unit}</small></strong></div>`;
+                  };
+                  return `<div class="metric-grid">${metric('Zuluft', 'sensor.zehnder_comfoair_q350_zuluftvolumenstrom', 'm³/h')}${metric('Abluft', 'sensor.zehnder_comfoair_q350_abluftvolumenstrom', 'm³/h')}${metric('Abweichung', 'sensor.zehnder_comfoair_q350_volumenstrom_abweichung', '%')}${metric('Zuluftdrehzahl', 'sensor.zehnder_comfoair_q350_zuluftventilator_drehzahl', 'rpm')}${metric('Abluftdrehzahl', 'sensor.zehnder_comfoair_q350_abluftventilator_drehzahl', 'rpm')}${metric('Leistung', 'sensor.zehnder_comfoair_q350_leistungsaufnahme', 'W')}</div>`;
+                ]]]
+            grid_options:
+              columns: 12
+              rows: 5
+            styles:
+              card:
+                - height: 100%
+                - border-radius: 8px
+                - padding: 18px
+                - box-shadow: none
+              grid:
+                - grid-template-areas: '"heading" "metrics"'
+                - grid-template-rows: min-content 1fr
+                - row-gap: 14px
+              custom_fields:
+                heading:
+                  - justify-self: start
+                  - color: var(--primary-text-color)
+                  - font-size: 15px
+                  - font-weight: 600
+                metrics:
+                  - width: 100%
+            extra_styles: |
+              .metric-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 18px 10px;
+              }
+              .metric { display: grid; gap: 4px; min-width: 0; }
+              .metric span { color: var(--secondary-text-color); font-size: 11px; }
+              .metric strong { color: var(--primary-text-color); font-size: 19px; font-weight: 650; white-space: nowrap; }
+              .metric small { margin-left: 4px; color: var(--secondary-text-color); font-size: 10px; font-weight: 500; }
+              @media (max-width: 600px) {
+                .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                .metric strong { font-size: 17px; }
+              }
+
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            tap_action:
+              action: none
+            hold_action:
+              action: none
+            custom_fields:
+              heading: Effizienz und Wartung
+              metrics: |
+                [[[
+                  const valid = (state) => state && !['unknown', 'unavailable', 'none', 'null'].includes(state);
+                  const metric = (label, entityId, unit, empty = 'Derzeit nicht aktiv') => {
+                    const state = states[entityId]?.state;
+                    const available = valid(state);
+                    return `<div class="metric ${available ? '' : 'muted'}"><span>${label}</span><strong>${available ? state : '–'}${available ? `<small>${unit}</small>` : ''}</strong>${available ? '' : `<em>${empty}</em>`}</div>`;
+                  };
+                  return `<div class="metric-grid">${metric('Wärmerückgewinnung', 'sensor.zehnder_comfoair_q350_warmeruckgewinnungsgrad', '%')}${metric('Kälterückgewinnung', 'sensor.zehnder_comfoair_q350_kalteruckgewinnungsgrad', '%')}${metric('Filterrestlaufzeit', 'sensor.zehnder_comfoair_q350_filterrestlaufzeit', 'Tage', 'Keine Daten')}${metric('Energie im Jahr', 'sensor.zehnder_comfoair_q350_luftungsenergie_laufendes_jahr', 'kWh', 'Keine Daten')}${metric('Heizenergie zurückgewonnen', 'sensor.zehnder_comfoair_q350_eingesparte_heizenergie_gesamt', 'kWh', 'Keine Daten')}${metric('Freie Kühlung', 'sensor.zehnder_comfoair_q350_freie_kuhlung_begrundung', '', 'Keine Daten')}</div>`;
+                ]]]
+            grid_options:
+              columns: 12
+              rows: 6
+            styles:
+              card:
+                - height: 100%
+                - border-radius: 8px
+                - padding: 18px
+                - box-shadow: none
+              grid:
+                - grid-template-areas: '"heading" "metrics"'
+                - grid-template-rows: min-content 1fr
+                - row-gap: 14px
+              custom_fields:
+                heading:
+                  - justify-self: start
+                  - color: var(--primary-text-color)
+                  - font-size: 15px
+                  - font-weight: 600
+                metrics:
+                  - width: 100%
+            extra_styles: |
+              .metric-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 18px 14px;
+              }
+              .metric { display: grid; align-content: start; gap: 4px; min-width: 0; }
+              .metric span { color: var(--secondary-text-color); font-size: 11px; }
+              .metric strong { color: var(--primary-text-color); font-size: 18px; font-weight: 650; white-space: nowrap; }
+              .metric small { margin-left: 4px; color: var(--secondary-text-color); font-size: 10px; font-weight: 500; }
+              .metric em { color: var(--secondary-text-color); font-size: 10px; font-style: normal; }
+              .metric.muted strong { color: var(--disabled-text-color); }
