@@ -256,6 +256,30 @@ MQTT` sollte das Zehnder-Geraet mit seinen Entitaeten erscheinen.
 Die bestehenden MQTT-Topics und Home-Assistant-Unique-IDs bleiben auch bei
 Updates unveraendert. Dadurch entstehen keine doppelten Entitaeten.
 
+### Fertiges Dashboard installieren
+
+Auf der Browser-Installer-Seite steht ein Dashboard-Paket zum Download bereit:
+
+```text
+https://ashleyvargrand.github.io/GerlCraft-Zehnder-Bridge/
+```
+
+Das Paket enthaelt:
+
+- `dashboard-native.yaml` ohne zusaetzliche Home-Assistant-Karten,
+- `dashboard-animated.yaml` mit einer dezenten Animation und `button-card`,
+- `README.md` mit der genauen Import- und Anpassungsanleitung.
+
+Fuer die native Variante in Home Assistant ein leeres Dashboard erstellen,
+den Raw-Konfigurationseditor oeffnen und den kompletten Inhalt von
+`dashboard-native.yaml` einfuegen. Fuer die animierte Variante vorher in HACS
+die Frontend-Erweiterung `Button Card` installieren.
+
+Falls Home Assistant bei der ersten Einrichtung andere Entity-IDs erzeugt
+hat, wird der Praefix `zehnder_comfoair_q350` in der Dashboard-Datei einmalig
+durch den eigenen Entity-Praefix ersetzt. Die genaue Vorgehensweise steht in
+der beiliegenden Dashboard-Anleitung.
+
 ## 10. Spaetere Updates per WLAN
 
 Nach der Ersteinrichtung kann die Firmware ohne USB-Kabel aktualisiert

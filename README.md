@@ -126,6 +126,20 @@ homeassistant/device/gerlcraft_hvac_bridge_zehnder/config
 Der sichtbare Geraetename und die Konfigurations-URL koennen sich durch die
 Web-Konfiguration aendern.
 
+## Home-Assistant-Dashboard
+
+Ein fertiges Dashboard liegt im Ordner [`home-assistant`](home-assistant/).
+Enthalten sind:
+
+- eine native Variante ohne Zusatzkarten,
+- eine leicht animierte Variante mit `button-card`,
+- eine Schritt-fuer-Schritt-Anleitung zur Installation und Anpassung der
+  Entity-IDs.
+
+Das Dashboard-Paket kann außerdem direkt auf der
+[Browser-Installer-Seite](https://ashleyvargrand.github.io/GerlCraft-Zehnder-Bridge/)
+heruntergeladen werden.
+
 ## Build
 
 ```powershell

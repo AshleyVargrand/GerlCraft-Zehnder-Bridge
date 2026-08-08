@@ -1,0 +1,489 @@
+# Zehnder ComfoAir Bridge - animiertes Home-Assistant-Dashboard
+# Voraussetzung: button-card aus HACS (custom-cards/button-card)
+# Erwarteter Entity-Praefix: zehnder_comfoair_q350
+
+title: Zehnder ComfoAir
+
+button_card_templates:
+  zehnder_hero:
+    show_icon: true
+    show_name: true
+    show_state: true
+    show_label: true
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    rotate: |
+      [[[
+        return states['binary_sensor.zehnder_comfoair_q350_verbindung']?.state === 'on';
+      ]]]
+    name: Zehnder ComfoAir Q
+    state_display: |
+      [[[
+        return `Lüfterstufe ${entity?.state ?? '–'}`;
+      ]]]
+    label: |
+      [[[
+        const mode = states['sensor.zehnder_comfoair_q350_betriebsmodus']?.state ?? '–';
+        return mode;
+      ]]]
+    custom_fields:
+      airflow: |
+        [[[
+          const supply = states['sensor.zehnder_comfoair_q350_zuluftvolumenstrom']?.state ?? '–';
+          const exhaust = states['sensor.zehnder_comfoair_q350_abluftvolumenstrom']?.state ?? '–';
+          return `<span class="metric-value">${supply}</span> / ${exhaust} m³/h`;
+        ]]]
+      temperature: |
+        [[[
+          const outdoor = states['sensor.zehnder_comfoair_q350_aussenlufttemperatur']?.state ?? '–';
+          const supply = states['sensor.zehnder_comfoair_q350_zulufttemperatur']?.state ?? '–';
+          return `<span class="metric-value">${outdoor}</span> / ${supply} °C`;
+        ]]]
+      power: |
+        [[[
+          const value = states['sensor.zehnder_comfoair_q350_leistungsaufnahme']?.state ?? '–';
+          return `<span class="metric-value">${value}</span> W`;
+        ]]]
+    styles:
+      card:
+        - min-height: 190px
+        - border-radius: 8px
+        - padding: 22px
+        - background: linear-gradient(135deg, rgba(0, 137, 123, 0.22), rgba(3, 169, 244, 0.10))
+        - border: 1px solid rgba(0, 137, 123, 0.35)
+        - box-shadow: none
+      grid:
+        - grid-template-areas: '"i n n" "i s l" "i airflow temperature" "i power power"'
+        - grid-template-columns: 92px 1fr 1fr
+        - grid-template-rows: min-content min-content 1fr min-content
+        - column-gap: 16px
+      icon:
+        - width: 68px
+        - color: var(--teal-color)
+      img_cell:
+        - align-self: center
+        - justify-self: center
+        - width: 82px
+        - height: 82px
+        - border-radius: 50%
+        - background: rgba(0, 137, 123, 0.14)
+      name:
+        - justify-self: start
+        - align-self: end
+        - font-size: 22px
+        - font-weight: 600
+        - letter-spacing: 0
+      state:
+        - justify-self: start
+        - font-size: 16px
+        - font-weight: 600
+        - color: var(--primary-text-color)
+      label:
+        - justify-self: end
+        - font-size: 14px
+        - color: var(--secondary-text-color)
+      custom_fields:
+        airflow:
+          - justify-self: start
+          - align-self: end
+          - color: var(--secondary-text-color)
+          - font-size: 14px
+        temperature:
+          - justify-self: end
+          - align-self: end
+          - color: var(--secondary-text-color)
+          - font-size: 14px
+        power:
+          - justify-self: start
+          - color: var(--secondary-text-color)
+          - font-size: 14px
+    extra_styles: |
+      .metric-value {
+        color: var(--primary-text-color);
+        font-weight: 700;
+      }
+
+  zehnder_status:
+    show_state: true
+    show_label: false
+    tap_action:
+      action: more-info
+    hold_action:
+      action: none
+    styles:
+      card:
+        - min-height: 112px
+        - border-radius: 8px
+        - padding: 16px
+        - box-shadow: none
+      grid:
+        - grid-template-areas: '"i" "n" "s"'
+        - grid-template-rows: 42px min-content min-content
+      icon:
+        - width: 34px
+      name:
+        - justify-self: center
+        - font-size: 13px
+        - color: var(--secondary-text-color)
+        - letter-spacing: 0
+      state:
+        - justify-self: center
+        - font-size: 15px
+        - font-weight: 600
+        - letter-spacing: 0
+
+views:
+  - title: Übersicht
+    path: uebersicht
+    icon: mdi:air-filter
+    show_icon_and_title: true
+    type: sections
+    max_columns: 4
+    badges:
+      - type: entity
+        entity: binary_sensor.zehnder_comfoair_q350_verbindung
+        name: Verbindung
+        show_name: true
+        show_state: true
+        color: green
+      - type: entity
+        entity: sensor.zehnder_comfoair_q350_bridge_gesundheit
+        name: Bridge
+        show_name: true
+        show_state: true
+        color: teal
+      - type: entity
+        entity: sensor.zehnder_comfoair_q350_filterstatus
+        name: Filter
+        show_name: true
+        show_state: true
+        color: amber
+
+    sections:
+      - type: grid
+        title: Anlagenstatus
+        background:
+          color: green
+          opacity: 6
+        cards:
+          - type: custom:button-card
+            template: zehnder_hero
+            entity: sensor.zehnder_comfoair_q350_lufterstufe
+            icon: mdi:fan
+
+          - type: custom:button-card
+            template: zehnder_status
+            entity: sensor.zehnder_comfoair_q350_bridge_gesundheit
+            name: Bridge
+            icon: mdi:heart-pulse
+            styles:
+              icon:
+                - color: |
+                    [[[
+                      return entity?.state === 'OK' ? 'var(--success-color)' : 'var(--error-color)';
+                    ]]]
+
+          - type: custom:button-card
+            template: zehnder_status
+            entity: sensor.zehnder_comfoair_q350_filterstatus
+            name: Filter
+            icon: mdi:air-filter
+            styles:
+              icon:
+                - color: |
+                    [[[
+                      return entity?.state === 'OK' ? 'var(--success-color)' : 'var(--warning-color)';
+                    ]]]
+
+          - type: custom:button-card
+            template: zehnder_status
+            entity: binary_sensor.zehnder_comfoair_q350_freie_kuhlung
+            name: Freie Kühlung
+            icon: mdi:snowflake-thermometer
+            styles:
+              icon:
+                - color: |
+                    [[[
+                      return entity?.state === 'on' ? 'var(--info-color)' : 'var(--disabled-text-color)';
+                    ]]]
+                - animation: |
+                    [[[
+                      return entity?.state === 'on' ? 'zehnder-pulse 1.8s ease-in-out infinite' : 'none';
+                    ]]]
+            extra_styles: |
+              @keyframes zehnder-pulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.12); opacity: 0.68; }
+              }
+
+          - type: custom:button-card
+            template: zehnder_status
+            entity: sensor.zehnder_comfoair_q350_bypass_offnung
+            name: Bypass
+            icon: mdi:valve-open
+            styles:
+              icon:
+                - color: |
+                    [[[
+                      const value = Number(entity?.state);
+                      return value > 10 ? 'var(--warning-color)' : 'var(--disabled-text-color)';
+                    ]]]
+
+      - type: grid
+        title: Luftbalance
+        background:
+          color: blue
+          opacity: 6
+        cards:
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_zuluftvolumenstrom
+            name: Zuluft
+            min: 0
+            max: 400
+            needle: true
+            segments:
+              - from: 0
+                color: var(--disabled-text-color)
+              - from: 80
+                color: var(--info-color)
+              - from: 300
+                color: var(--warning-color)
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_abluftvolumenstrom
+            name: Abluft
+            min: 0
+            max: 400
+            needle: true
+            segments:
+              - from: 0
+                color: var(--disabled-text-color)
+              - from: 80
+                color: var(--success-color)
+              - from: 300
+                color: var(--warning-color)
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_volumenstrom_abweichung
+            name: Abweichung
+            min: 0
+            max: 20
+            needle: true
+            segments:
+              - from: 0
+                color: var(--success-color)
+              - from: 5
+                color: var(--warning-color)
+              - from: 10
+                color: var(--error-color)
+
+      - type: grid
+        title: Temperaturen
+        background:
+          color: red
+          opacity: 5
+        cards:
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_aussenlufttemperatur
+            name: Außenluft
+            icon: mdi:thermometer-low
+            color: light-blue
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_zulufttemperatur
+            name: Zuluft
+            icon: mdi:home-import-outline
+            color: blue
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_ablufttemperatur
+            name: Abluft
+            icon: mdi:home-export-outline
+            color: orange
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_fortlufttemperatur
+            name: Fortluft
+            icon: mdi:thermometer-chevron-down
+            color: deep-orange
+            vertical: true
+
+      - type: grid
+        title: Rückgewinnung
+        background:
+          color: teal
+          opacity: 6
+        cards:
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_warmeruckgewinnungsgrad
+            name: Wärme
+            min: 0
+            max: 100
+            needle: true
+            segments:
+              - from: 0
+                color: var(--error-color)
+              - from: 50
+                color: var(--warning-color)
+              - from: 70
+                color: var(--success-color)
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_kalteruckgewinnungsgrad
+            name: Kälte
+            min: 0
+            max: 100
+            needle: true
+            segments:
+              - from: 0
+                color: var(--error-color)
+              - from: 50
+                color: var(--warning-color)
+              - from: 70
+                color: var(--info-color)
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_zuluftdifferenz_zur_aussenluft
+            name: Zuluftdifferenz
+            icon: mdi:swap-vertical
+            color: purple
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_freie_kuhlung_begrundung
+            name: Freie Kühlung
+            icon: mdi:snowflake-thermometer
+            color: light-blue
+            vertical: true
+
+      - type: grid
+        title: Wartung und Energie
+        background:
+          color: amber
+          opacity: 6
+        cards:
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_filterrestlaufzeit
+            name: Filterrestlaufzeit
+            min: 0
+            max: 180
+            needle: true
+            segments:
+              - from: 0
+                color: var(--error-color)
+              - from: 14
+                color: var(--warning-color)
+              - from: 30
+                color: var(--success-color)
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_leistungsaufnahme
+            name: Leistungsaufnahme
+            min: 0
+            max: 250
+            needle: true
+            segments:
+              - from: 0
+                color: var(--success-color)
+              - from: 100
+                color: var(--warning-color)
+              - from: 180
+                color: var(--error-color)
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_luftungsenergie_laufendes_jahr
+            name: Energie dieses Jahr
+            icon: mdi:counter
+            color: amber
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_eingesparte_heizenergie_gesamt
+            name: Heizenergie zurückgewonnen
+            icon: mdi:heat-wave
+            color: red
+            vertical: true
+
+  - title: Verlauf
+    path: verlauf
+    icon: mdi:chart-line
+    show_icon_and_title: true
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        title: Temperaturen · 24 Stunden
+        cards:
+          - type: history-graph
+            hours_to_show: 24
+            entities:
+              - entity: sensor.zehnder_comfoair_q350_aussenlufttemperatur
+                name: Außenluft
+              - entity: sensor.zehnder_comfoair_q350_zulufttemperatur
+                name: Zuluft
+              - entity: sensor.zehnder_comfoair_q350_ablufttemperatur
+                name: Abluft
+              - entity: sensor.zehnder_comfoair_q350_fortlufttemperatur
+                name: Fortluft
+
+      - type: grid
+        title: Volumenstrom · 24 Stunden
+        cards:
+          - type: history-graph
+            hours_to_show: 24
+            entities:
+              - entity: sensor.zehnder_comfoair_q350_zuluftvolumenstrom
+                name: Zuluft
+              - entity: sensor.zehnder_comfoair_q350_abluftvolumenstrom
+                name: Abluft
+              - entity: sensor.zehnder_comfoair_q350_volumenstrom_abweichung
+                name: Abweichung
+
+      - type: grid
+        title: Ventilatoren · 24 Stunden
+        cards:
+          - type: history-graph
+            hours_to_show: 24
+            entities:
+              - entity: sensor.zehnder_comfoair_q350_zuluftventilator_ansteuerung
+                name: Zuluft Ansteuerung
+              - entity: sensor.zehnder_comfoair_q350_abluftventilator_ansteuerung
+                name: Abluft Ansteuerung
+              - entity: sensor.zehnder_comfoair_q350_zuluftventilator_drehzahl
+                name: Zuluft Drehzahl
+              - entity: sensor.zehnder_comfoair_q350_abluftventilator_drehzahl
+                name: Abluft Drehzahl
+
+      - type: grid
+        title: Luftfeuchtigkeit · 24 Stunden
+        cards:
+          - type: history-graph
+            hours_to_show: 24
+            entities:
+              - entity: sensor.zehnder_comfoair_q350_aussenluftfeuchtigkeit
+                name: Außenluft
+              - entity: sensor.zehnder_comfoair_q350_zuluftfeuchtigkeit
+                name: Zuluft
+              - entity: sensor.zehnder_comfoair_q350_abluftfeuchtigkeit
+                name: Abluft
+              - entity: sensor.zehnder_comfoair_q350_fortluftfeuchtigkeit
+                name: Fortluft
+
+      - type: grid
+        title: Energie
+        cards:
+          - type: entities
+            entities:
+              - sensor.zehnder_comfoair_q350_leistungsaufnahme
+              - sensor.zehnder_comfoair_q350_luftungsenergie_laufendes_jahr
+              - sensor.zehnder_comfoair_q350_luftungsenergie_gesamt
+              - sensor.zehnder_comfoair_q350_eingesparte_heizleistung_thermisch
+              - sensor.zehnder_comfoair_q350_eingesparte_kuhlleistung_thermisch
+
+      - type: grid
+        title: Anlagenzustand
+        cards:
+          - type: entities
+            entities:
+              - binary_sensor.zehnder_comfoair_q350_verbindung
+              - sensor.zehnder_comfoair_q350_geratestatus
+              - sensor.zehnder_comfoair_q350_betriebsmodus
+              - sensor.zehnder_comfoair_q350_lufterstufe
+              - sensor.zehnder_comfoair_q350_bypass_modus
+              - sensor.zehnder_comfoair_q350_filterstatus
+              - sensor.zehnder_comfoair_q350_filterrestlaufzeit
+              - sensor.zehnder_comfoair_q350_bridge_gesundheit

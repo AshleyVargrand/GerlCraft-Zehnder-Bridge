@@ -123,6 +123,41 @@ def deterministic_zip(source_dir, destination):
             archive.writestr(zip_info, source_path.read_bytes())
 
 
+def package_dashboard(site_dir, release_dir):
+    dashboard_source = PROJECT_DIR / "home-assistant"
+    required_files = (
+        dashboard_source / "README.md",
+        dashboard_source / "dashboard-native.yaml",
+        dashboard_source / "dashboard-animated.yaml",
+    )
+
+    for required_file in required_files:
+        if not required_file.is_file():
+            raise RuntimeError(
+                f"Home-Assistant-Datei fehlt: {required_file}"
+            )
+
+    release_dashboard_dir = release_dir / "home-assistant"
+    shutil.copytree(
+        dashboard_source,
+        release_dashboard_dir,
+        dirs_exist_ok=True,
+    )
+
+    download_dir = site_dir / "downloads"
+    download_dir.mkdir(parents=True, exist_ok=True)
+    archive_path = download_dir / "zehnder-comfoair-dashboard.zip"
+    checksum_path = download_dir / "zehnder-comfoair-dashboard.sha256"
+
+    deterministic_zip(dashboard_source, archive_path)
+    checksum_path.write_text(
+        f"{sha256(archive_path)}  {archive_path.name}\n",
+        encoding="ascii",
+    )
+
+    return archive_path
+
+
 def build_release(source, target, env):
     version = read_version()
     artifact_name = f"zehnder-comfoair-bridge-v{version}"
@@ -235,6 +270,8 @@ def build_release(source, target, env):
         site_dir / "index.html",
     )
 
+    dashboard_archive = package_dashboard(site_dir, release_dir)
+
     commit = git_value("rev-parse", "HEAD")
     commit_time = git_value("show", "-s", "--format=%cI", "HEAD")
     repository = os.environ.get(
@@ -274,6 +311,7 @@ def build_release(source, target, env):
         "artifacts": {
             factory_filename: sha256(factory_firmware),
             "firmware.bin": sha256(application),
+            dashboard_archive.name: sha256(dashboard_archive),
         },
     }
 
@@ -308,6 +346,18 @@ def build_release(source, target, env):
         f"{sha256(release_dir / 'firmware.bin')}  firmware.bin",
         f"{sha256(release_dir / 'manifest.json')}  manifest.json",
         f"{sha256(release_dir / 'build-info.json')}  build-info.json",
+        (
+            f"{sha256(release_dir / 'home-assistant' / 'README.md')}  "
+            "home-assistant/README.md"
+        ),
+        (
+            f"{sha256(release_dir / 'home-assistant' / 'dashboard-native.yaml')}  "
+            "home-assistant/dashboard-native.yaml"
+        ),
+        (
+            f"{sha256(release_dir / 'home-assistant' / 'dashboard-animated.yaml')}  "
+            "home-assistant/dashboard-animated.yaml"
+        ),
     ]
     (release_dir / "SHA256SUMS.txt").write_text(
         "\n".join(checksum_lines) + "\n",

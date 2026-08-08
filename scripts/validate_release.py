@@ -24,10 +24,15 @@ def main():
         SITE_DIR / "index.html",
         manifest_path,
         build_info_path,
+        SITE_DIR / "downloads" / "zehnder-comfoair-dashboard.zip",
+        SITE_DIR / "downloads" / "zehnder-comfoair-dashboard.sha256",
         RELEASE_DIR / "SHA256SUMS.txt",
         RELEASE_DIR / "SOURCE.txt",
         RELEASE_DIR / "LICENSE",
         RELEASE_DIR / "THIRD_PARTY_NOTICES.md",
+        RELEASE_DIR / "home-assistant" / "README.md",
+        RELEASE_DIR / "home-assistant" / "dashboard-native.yaml",
+        RELEASE_DIR / "home-assistant" / "dashboard-animated.yaml",
     ):
         if not required_path.is_file():
             errors.append(f"Datei fehlt: {required_path}")
@@ -86,9 +91,35 @@ def main():
                 "SOURCE.txt",
                 "SHA256SUMS.txt",
                 "firmware.bin",
+                "home-assistant/README.md",
+                "home-assistant/dashboard-native.yaml",
+                "home-assistant/dashboard-animated.yaml",
             ):
                 if required_name not in names:
                     errors.append(f"Fehlt im Release-ZIP: {required_name}")
+
+    dashboard_archive = (
+        SITE_DIR / "downloads" / "zehnder-comfoair-dashboard.zip"
+    )
+
+    if dashboard_archive.is_file():
+        with zipfile.ZipFile(dashboard_archive, "r") as archive:
+            bad_file = archive.testzip()
+
+            if bad_file is not None:
+                errors.append(f"Defektes Dashboard-ZIP: {bad_file}")
+
+            names = set(archive.namelist())
+
+            for required_name in (
+                "README.md",
+                "dashboard-native.yaml",
+                "dashboard-animated.yaml",
+            ):
+                if required_name not in names:
+                    errors.append(
+                        f"Fehlt im Dashboard-ZIP: {required_name}"
+                    )
 
     if errors:
         print("Release-Pruefung fehlgeschlagen:", file=sys.stderr)
