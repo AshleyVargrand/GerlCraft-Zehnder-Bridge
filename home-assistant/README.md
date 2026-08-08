@@ -35,13 +35,15 @@ Die animierte Variante ist fuer `button-card` 7.0 oder neuer erstellt.
 
 1. Das vorhandene Dashboard oeffnen.
 2. Oben rechts den Bearbeitungsmodus aktivieren.
-3. Im Drei-Punkte-Menue den `Raw-Konfigurationseditor` oeffnen.
-4. Den vorhandenen Inhalt vorsichtshalber sichern.
-5. Im YAML die vorhandene Zeile `views:` suchen.
-6. Den kompletten Inhalt von `view-native.yaml` oder `view-animated.yaml` am
+3. Falls Home Assistant `Kontrolle uebernehmen` anbietet, diese Option im
+   Drei-Punkte-Menue zuerst auswaehlen und bestaetigen.
+4. Im Drei-Punkte-Menue den `Raw-Konfigurationseditor` oeffnen.
+5. Den vorhandenen Inhalt vorsichtshalber sichern.
+6. Im YAML die vorhandene Zeile `views:` suchen.
+7. Den kompletten Inhalt von `view-native.yaml` oder `view-animated.yaml` am
    Ende der bestehenden `views:`-Liste einfuegen. Die Einrueckung in den
    Dateien ist bereits passend vorbereitet.
-7. Speichern. Im Dashboard erscheint der neue Reiter `Zehnder`.
+8. Speichern. Im Dashboard erscheint der neue Reiter `Zehnder`.
 
 Nicht `dashboard-native.yaml` oder `dashboard-animated.yaml` in ein
 bestehendes Dashboard einfuegen. Diese beiden Dateien enthalten eine komplette

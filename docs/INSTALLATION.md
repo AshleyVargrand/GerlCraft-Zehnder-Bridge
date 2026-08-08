@@ -278,7 +278,9 @@ Fuer ein neues, leeres Dashboard den kompletten Inhalt einer
 Raw-Konfigurationseditor stattdessen den Inhalt einer `view-*.yaml` am Ende der
 bestehenden `views:`-Liste einfuegen. Bereits vorhandene Seiten bleiben dabei
 erhalten. Fuer die animierte Variante vorher in HACS die Frontend-Erweiterung
-`Button Card` installieren.
+`Button Card` installieren. Falls Home Assistant das Dashboard automatisch
+verwaltet, muss im Bearbeitungsmenue zuvor `Kontrolle uebernehmen` ausgewaehlt
+werden.
 
 Falls Home Assistant bei der ersten Einrichtung andere Entity-IDs erzeugt
 hat, wird der Praefix `zehnder_comfoair_q350` in der Dashboard-Datei einmalig
