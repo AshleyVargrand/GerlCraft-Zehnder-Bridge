@@ -35,6 +35,14 @@ def main():
         RELEASE_DIR / "home-assistant" / "dashboard-animated.yaml",
         RELEASE_DIR / "home-assistant" / "view-native.yaml",
         RELEASE_DIR / "home-assistant" / "view-animated.yaml",
+        RELEASE_DIR / "home-assistant" / "view-custom-card.yaml",
+        (
+            RELEASE_DIR
+            / "home-assistant"
+            / "custom-card"
+            / "gerlcraft-zehnder-card.js"
+        ),
+        RELEASE_DIR / "home-assistant" / "custom-card" / "INSTALLATION.md",
     ):
         if not required_path.is_file():
             errors.append(f"Datei fehlt: {required_path}")
@@ -98,6 +106,9 @@ def main():
                 "home-assistant/dashboard-animated.yaml",
                 "home-assistant/view-native.yaml",
                 "home-assistant/view-animated.yaml",
+                "home-assistant/view-custom-card.yaml",
+                "home-assistant/custom-card/gerlcraft-zehnder-card.js",
+                "home-assistant/custom-card/INSTALLATION.md",
             ):
                 if required_name not in names:
                     errors.append(f"Fehlt im Release-ZIP: {required_name}")
@@ -121,6 +132,9 @@ def main():
                 "dashboard-animated.yaml",
                 "view-native.yaml",
                 "view-animated.yaml",
+                "view-custom-card.yaml",
+                "custom-card/gerlcraft-zehnder-card.js",
+                "custom-card/INSTALLATION.md",
             ):
                 if required_name not in names:
                     errors.append(

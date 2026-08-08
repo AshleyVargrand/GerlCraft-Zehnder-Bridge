@@ -132,6 +132,9 @@ def package_dashboard(site_dir, release_dir):
         dashboard_source / "view-native.yaml",
         dashboard_source / "view-animated.yaml",
         dashboard_source / "view-animated-v2.yaml",
+        dashboard_source / "view-custom-card.yaml",
+        dashboard_source / "custom-card" / "gerlcraft-zehnder-card.js",
+        dashboard_source / "custom-card" / "INSTALLATION.md",
     )
 
     for required_file in required_files:

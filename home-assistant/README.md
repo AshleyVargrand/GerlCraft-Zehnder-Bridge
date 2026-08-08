@@ -6,6 +6,19 @@ Befehle an die Lueftungsanlage.
 
 ## Varianten
 
+### `custom-card/gerlcraft-zehnder-card.js` (empfohlen)
+
+- eigenstaendige, responsive Anlagenvisualisierung
+- animierte Luftstroeme, Ventilator und Bypass-Stellung
+- kompakte Darstellung fuer Desktop, Tablet und Smartphone
+- erkennt den Entity-Praefix automatisch
+- zeigt nicht verfuegbare Messwerte ohne Fehlerkarte an
+- benoetigt keine weitere HACS-Karte
+
+Die vollstaendige Einrichtung steht in
+[`custom-card/INSTALLATION.md`](custom-card/INSTALLATION.md). Die vorbereitete
+Seite fuer ein bestehendes Dashboard liegt in `view-custom-card.yaml`.
+
 ### `dashboard-native.yaml`
 
 - keine Zusatzinstallation erforderlich

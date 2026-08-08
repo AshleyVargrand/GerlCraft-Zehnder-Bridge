@@ -131,9 +131,10 @@ Web-Konfiguration aendern.
 Ein fertiges Dashboard liegt im Ordner [`home-assistant`](home-assistant/).
 Enthalten sind:
 
+- eine eigene responsive Anlagenkarte mit animierten Luftstroemen,
 - eine native Variante ohne Zusatzkarten,
 - eine leicht animierte Variante mit `button-card`,
-- zwei vorbereitete Einzelansichten zum Ergaenzen eines vorhandenen
+- vorbereitete Einzelansichten zum Ergaenzen eines vorhandenen
   Dashboards,
 - eine Schritt-fuer-Schritt-Anleitung zur Installation und Anpassung der
   Entity-IDs.

@@ -1,0 +1,11 @@
+# GerlCraft Zehnder Card - einzelne vollbreite Ansicht
+# Vorher custom-card/INSTALLATION.md befolgen.
+
+  - title: Zehnder
+    path: zehnder-card
+    icon: mdi:air-filter
+    show_icon_and_title: true
+    type: panel
+    cards:
+      - type: custom:gerlcraft-zehnder-card
+        title: Zehnder ComfoAir Q

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GerlCraft Zehnder Card Preview</title>
+  <style>
+    :root {
+      --primary-text-color: #f1f5f4;
+      --secondary-text-color: #93a29f;
+      --disabled-text-color: #5d6967;
+      --card-background-color: #1b201f;
+      --ha-card-background: #1b201f;
+      --divider-color: #303836;
+      --success-color: #4caf70;
+      --warning-color: #ffb020;
+      --error-color: #ef5350;
+      --teal-color: #00a99a;
+      color-scheme: dark;
+      font-family: Inter, "Segoe UI", sans-serif;
+      background: #111514;
+    }
+    body { margin: 0; min-height: 100vh; padding: 18px 0; background: #111514; }
+    ha-icon { display: grid; place-items: center; width: 24px; height: 24px; }
+    ha-icon::after { content: "◆"; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <gerlcraft-zehnder-card></gerlcraft-zehnder-card>
+  <script type="module">
+    import "../home-assistant/custom-card/gerlcraft-zehnder-card.js";
+
+    const prefix = "zehnder_comfoair_q350";
+    const states = {};
+    const set = (domain, suffix, state) => {
+      const entityId = `${domain}.${prefix}_${suffix}`;
+      states[entityId] = { entity_id: entityId, state: String(state), attributes: {} };
+    };
+
+    set("binary_sensor", "verbindung", "on");
+    set("sensor", "lufterstufe", "2");
+    set("sensor", "betriebsmodus", "Automatik");
+    set("sensor", "bridge_gesundheit", "OK");
+    set("sensor", "filterstatus", "OK");
+    set("sensor", "filterrestlaufzeit", "38");
+    set("binary_sensor", "freie_kuhlung", "on");
+    set("sensor", "freie_kuhlung_begrundung", "Aktiv");
+    set("sensor", "bypass_offnung", "100");
+    set("sensor", "aussenlufttemperatur", "19.0");
+    set("sensor", "zulufttemperatur", "21.2");
+    set("sensor", "ablufttemperatur", "26.8");
+    set("sensor", "fortlufttemperatur", "26.0");
+    set("sensor", "zuluftvolumenstrom", "227");
+    set("sensor", "abluftvolumenstrom", "227");
+    set("sensor", "volumenstrom_abweichung", "0.0");
+    set("sensor", "zuluftventilator_drehzahl", "2068");
+    set("sensor", "abluftventilator_drehzahl", "2063");
+    set("sensor", "leistungsaufnahme", "55");
+    set("sensor", "warmeruckgewinnungsgrad", "unavailable");
+    set("sensor", "kalteruckgewinnungsgrad", "unavailable");
+    set("sensor", "luftungsenergie_laufendes_jahr", "153");
+    set("sensor", "eingesparte_heizenergie_gesamt", "1413");
+
+    await customElements.whenDefined("gerlcraft-zehnder-card");
+    const card = document.querySelector("gerlcraft-zehnder-card");
+    card.setConfig({ title: "Zehnder ComfoAir Q350" });
+    card.hass = { states, locale: { language: "de-DE" } };
+  </script>
+</body>
+</html>
