@@ -1,0 +1,260 @@
+# Zehnder ComfoAir Bridge - einzelne native Ansicht
+# Zum Einfuegen in ein bestehendes Home-Assistant-Dashboard.
+# Diesen kompletten Block am Ende der vorhandenen views:-Liste einfuegen.
+
+  - title: Zehnder
+    path: zehnder
+    icon: mdi:air-filter
+    show_icon_and_title: true
+    type: sections
+    max_columns: 4
+    badges:
+      - type: entity
+        entity: binary_sensor.zehnder_comfoair_q350_verbindung
+        name: Verbindung
+        show_name: true
+        show_state: true
+        color: green
+      - type: entity
+        entity: sensor.zehnder_comfoair_q350_bridge_gesundheit
+        name: Bridge
+        show_name: true
+        show_state: true
+        color: teal
+      - type: entity
+        entity: sensor.zehnder_comfoair_q350_filterstatus
+        name: Filter
+        show_name: true
+        show_state: true
+        color: amber
+
+    sections:
+      - type: grid
+        title: Betrieb
+        background:
+          color: green
+          opacity: 6
+        cards:
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_lufterstufe
+            name: Lüfterstufe
+            icon: mdi:fan
+            color: teal
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_betriebsmodus
+            name: Betriebsmodus
+            icon: mdi:auto-mode
+            color: blue
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_bypass_modus
+            name: Bypass-Modus
+            icon: mdi:valve
+            color: amber
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_freie_kuhlung_begrundung
+            name: Freie Kühlung
+            icon: mdi:snowflake-thermometer
+            color: light-blue
+            vertical: true
+
+      - type: grid
+        title: Luftbalance
+        background:
+          color: blue
+          opacity: 6
+        cards:
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_zuluftvolumenstrom
+            name: Zuluft
+            min: 0
+            max: 400
+            needle: true
+            segments:
+              - from: 0
+                color: var(--disabled-text-color)
+              - from: 80
+                color: var(--info-color)
+              - from: 300
+                color: var(--warning-color)
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_abluftvolumenstrom
+            name: Abluft
+            min: 0
+            max: 400
+            needle: true
+            segments:
+              - from: 0
+                color: var(--disabled-text-color)
+              - from: 80
+                color: var(--success-color)
+              - from: 300
+                color: var(--warning-color)
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_volumenstrom_abweichung
+            name: Abweichung
+            min: 0
+            max: 20
+            needle: true
+            segments:
+              - from: 0
+                color: var(--success-color)
+              - from: 5
+                color: var(--warning-color)
+              - from: 10
+                color: var(--error-color)
+
+      - type: grid
+        title: Temperaturen
+        background:
+          color: red
+          opacity: 5
+        cards:
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_aussenlufttemperatur
+            name: Außenluft
+            icon: mdi:thermometer-low
+            color: light-blue
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_zulufttemperatur
+            name: Zuluft
+            icon: mdi:home-import-outline
+            color: blue
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_ablufttemperatur
+            name: Abluft
+            icon: mdi:home-export-outline
+            color: orange
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_fortlufttemperatur
+            name: Fortluft
+            icon: mdi:thermometer-chevron-down
+            color: deep-orange
+            vertical: true
+
+      - type: grid
+        title: Rückgewinnung und Kühlung
+        background:
+          color: teal
+          opacity: 6
+        cards:
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_warmeruckgewinnungsgrad
+            name: Wärmerückgewinnung
+            min: 0
+            max: 100
+            needle: true
+            segments:
+              - from: 0
+                color: var(--error-color)
+              - from: 50
+                color: var(--warning-color)
+              - from: 70
+                color: var(--success-color)
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_kalteruckgewinnungsgrad
+            name: Kälterückgewinnung
+            min: 0
+            max: 100
+            needle: true
+            segments:
+              - from: 0
+                color: var(--error-color)
+              - from: 50
+                color: var(--warning-color)
+              - from: 70
+                color: var(--info-color)
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_bypass_offnung
+            name: Bypass-Öffnung
+            icon: mdi:valve-open
+            color: amber
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_zuluftdifferenz_zur_aussenluft
+            name: Zuluftdifferenz
+            icon: mdi:swap-vertical
+            color: purple
+            vertical: true
+
+      - type: grid
+        title: Luftfeuchtigkeit
+        background:
+          color: cyan
+          opacity: 5
+        cards:
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_aussenluftfeuchtigkeit
+            name: Außenluft
+            icon: mdi:water-percent
+            color: light-blue
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_zuluftfeuchtigkeit
+            name: Zuluft
+            icon: mdi:water-percent
+            color: blue
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_abluftfeuchtigkeit
+            name: Abluft
+            icon: mdi:water-percent
+            color: teal
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_fortluftfeuchtigkeit
+            name: Fortluft
+            icon: mdi:water-percent
+            color: indigo
+            vertical: true
+
+      - type: grid
+        title: Energie und Wartung
+        background:
+          color: amber
+          opacity: 6
+        cards:
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_filterrestlaufzeit
+            name: Filterrestlaufzeit
+            min: 0
+            max: 180
+            needle: true
+            segments:
+              - from: 0
+                color: var(--error-color)
+              - from: 14
+                color: var(--warning-color)
+              - from: 30
+                color: var(--success-color)
+          - type: gauge
+            entity: sensor.zehnder_comfoair_q350_leistungsaufnahme
+            name: Leistungsaufnahme
+            min: 0
+            max: 250
+            needle: true
+            segments:
+              - from: 0
+                color: var(--success-color)
+              - from: 100
+                color: var(--warning-color)
+              - from: 180
+                color: var(--error-color)
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_luftungsenergie_laufendes_jahr
+            name: Energie dieses Jahr
+            icon: mdi:counter
+            color: amber
+            vertical: true
+          - type: tile
+            entity: sensor.zehnder_comfoair_q350_eingesparte_heizenergie_gesamt
+            name: Heizenergie zurückgewonnen
+            icon: mdi:heat-wave
+            color: red
+            vertical: true
+

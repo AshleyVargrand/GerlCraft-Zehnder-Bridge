@@ -133,6 +133,8 @@ Enthalten sind:
 
 - eine native Variante ohne Zusatzkarten,
 - eine leicht animierte Variante mit `button-card`,
+- zwei vorbereitete Einzelansichten zum Ergaenzen eines vorhandenen
+  Dashboards,
 - eine Schritt-fuer-Schritt-Anleitung zur Installation und Anpassung der
   Entity-IDs.
 

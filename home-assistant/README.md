@@ -1,8 +1,8 @@
 # Home-Assistant-Dashboard
 
-Dieses Paket enthaelt zwei fertige Dashboards fuer die Zehnder ComfoAir
-Bridge. Beide Varianten sind reine Anzeigen. Sie senden keine Befehle an die
-Lueftungsanlage.
+Dieses Paket enthaelt fertige Dashboards und einzelne Ansichten fuer die
+Zehnder ComfoAir Bridge. Alle Varianten sind reine Anzeigen. Sie senden keine
+Befehle an die Lueftungsanlage.
 
 ## Varianten
 
@@ -22,7 +22,42 @@ Lueftungsanlage.
 
 Die animierte Variante ist fuer `button-card` 7.0 oder neuer erstellt.
 
-## Native Variante installieren
+### `view-native.yaml` und `view-animated.yaml`
+
+- fuegen nur die Seite `Zehnder` zu einem bestehenden Dashboard hinzu
+- veraendern keine bereits vorhandenen Seiten
+- verwenden den eindeutigen URL-Pfad `zehnder`
+- `view-native.yaml` benoetigt keine Zusatzkarte
+- `view-animated.yaml` benoetigt `button-card`, aber keine globale
+  `button_card_templates`-Konfiguration
+
+## Seite zu einem bestehenden Dashboard hinzufuegen
+
+1. Das vorhandene Dashboard oeffnen.
+2. Oben rechts den Bearbeitungsmodus aktivieren.
+3. Im Drei-Punkte-Menue den `Raw-Konfigurationseditor` oeffnen.
+4. Den vorhandenen Inhalt vorsichtshalber sichern.
+5. Im YAML die vorhandene Zeile `views:` suchen.
+6. Den kompletten Inhalt von `view-native.yaml` oder `view-animated.yaml` am
+   Ende der bestehenden `views:`-Liste einfuegen. Die Einrueckung in den
+   Dateien ist bereits passend vorbereitet.
+7. Speichern. Im Dashboard erscheint der neue Reiter `Zehnder`.
+
+Nicht `dashboard-native.yaml` oder `dashboard-animated.yaml` in ein
+bestehendes Dashboard einfuegen. Diese beiden Dateien enthalten eine komplette
+Dashboard-Konfiguration und sind nur fuer ein neues, leeres Dashboard gedacht.
+
+Falls bereits eine Ansicht mit dem Pfad `zehnder` existiert, in der gewaehlten
+`view-*.yaml` vor dem Einfuegen diese Zeile anpassen:
+
+```yaml
+path: zehnder-bridge
+```
+
+Fuer die animierte Einzelansicht muss `Button Card` vorher ueber HACS
+installiert sein.
+
+## Komplettes natives Dashboard installieren
 
 1. In Home Assistant `Einstellungen > Dashboards` oeffnen.
 2. `Dashboard hinzufuegen` waehlen und ein leeres Dashboard erstellen.
@@ -33,7 +68,7 @@ Die animierte Variante ist fuer `button-card` 7.0 oder neuer erstellt.
    `dashboard-native.yaml` ersetzen.
 7. Speichern.
 
-## Animierte Variante installieren
+## Komplettes animiertes Dashboard installieren
 
 1. HACS oeffnen.
 2. Im Bereich Frontend nach `Button Card` suchen.

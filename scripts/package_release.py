@@ -129,6 +129,8 @@ def package_dashboard(site_dir, release_dir):
         dashboard_source / "README.md",
         dashboard_source / "dashboard-native.yaml",
         dashboard_source / "dashboard-animated.yaml",
+        dashboard_source / "view-native.yaml",
+        dashboard_source / "view-animated.yaml",
     )
 
     for required_file in required_files:

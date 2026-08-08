@@ -268,12 +268,17 @@ Das Paket enthaelt:
 
 - `dashboard-native.yaml` ohne zusaetzliche Home-Assistant-Karten,
 - `dashboard-animated.yaml` mit einer dezenten Animation und `button-card`,
+- `view-native.yaml` als einzelne Seite fuer ein vorhandenes Dashboard,
+- `view-animated.yaml` als einzelne animierte Seite fuer ein vorhandenes
+  Dashboard,
 - `README.md` mit der genauen Import- und Anpassungsanleitung.
 
-Fuer die native Variante in Home Assistant ein leeres Dashboard erstellen,
-den Raw-Konfigurationseditor oeffnen und den kompletten Inhalt von
-`dashboard-native.yaml` einfuegen. Fuer die animierte Variante vorher in HACS
-die Frontend-Erweiterung `Button Card` installieren.
+Fuer ein neues, leeres Dashboard den kompletten Inhalt einer
+`dashboard-*.yaml` verwenden. Bei einem bereits vorhandenen Dashboard im
+Raw-Konfigurationseditor stattdessen den Inhalt einer `view-*.yaml` am Ende der
+bestehenden `views:`-Liste einfuegen. Bereits vorhandene Seiten bleiben dabei
+erhalten. Fuer die animierte Variante vorher in HACS die Frontend-Erweiterung
+`Button Card` installieren.
 
 Falls Home Assistant bei der ersten Einrichtung andere Entity-IDs erzeugt
 hat, wird der Praefix `zehnder_comfoair_q350` in der Dashboard-Datei einmalig

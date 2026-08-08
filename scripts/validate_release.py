@@ -33,6 +33,8 @@ def main():
         RELEASE_DIR / "home-assistant" / "README.md",
         RELEASE_DIR / "home-assistant" / "dashboard-native.yaml",
         RELEASE_DIR / "home-assistant" / "dashboard-animated.yaml",
+        RELEASE_DIR / "home-assistant" / "view-native.yaml",
+        RELEASE_DIR / "home-assistant" / "view-animated.yaml",
     ):
         if not required_path.is_file():
             errors.append(f"Datei fehlt: {required_path}")
@@ -94,6 +96,8 @@ def main():
                 "home-assistant/README.md",
                 "home-assistant/dashboard-native.yaml",
                 "home-assistant/dashboard-animated.yaml",
+                "home-assistant/view-native.yaml",
+                "home-assistant/view-animated.yaml",
             ):
                 if required_name not in names:
                     errors.append(f"Fehlt im Release-ZIP: {required_name}")
@@ -115,6 +119,8 @@ def main():
                 "README.md",
                 "dashboard-native.yaml",
                 "dashboard-animated.yaml",
+                "view-native.yaml",
+                "view-animated.yaml",
             ):
                 if required_name not in names:
                     errors.append(
