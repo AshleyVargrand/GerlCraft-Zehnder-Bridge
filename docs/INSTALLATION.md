@@ -2,7 +2,10 @@
 
 Diese Anleitung fuehrt Schritt fuer Schritt durch die Installation auf einem
 M5Stack AtomS3 Lite mit Atomic CAN Base. Fuer die erste Einrichtung muessen
-keine WLAN- oder MQTT-Zugangsdaten im Quellcode eingetragen werden.
+keine WLAN- oder MQTT-Zugangsdaten im Quellcode eingetragen werden. Der
+empfohlene Weg fuer neue Nutzer ist der Browser-Installer mit anschliessender
+Einrichtung ueber das Setup-WLAN. Visual Studio Code und PlatformIO werden nur
+fuer eigene Builds oder Entwickler-Updates benoetigt.
 
 ## Unterstuetzte Hardware
 
@@ -19,8 +22,8 @@ diesem Projekt aber noch nicht praktisch verifiziert.
 
 ## Empfohlene Installation ueber den Browser
 
-Ab v0.9.8 ist fuer eine Erstinstallation weder Visual Studio Code noch
-PlatformIO erforderlich:
+Fuer eine Erstinstallation ist weder Visual Studio Code noch PlatformIO
+erforderlich:
 
 1. AtomS3 Lite noch nicht mit dem ComfoNet verbinden.
 2. AtomS3 Lite mit einem USB-C-Datenkabel an den Computer anschliessen.
@@ -233,7 +236,7 @@ Die Diagnose ist erreichbar unter:
 http://DEIN-HOSTNAME.local/diagnostics
 ```
 
-Ab v0.9.9 zeigt die Diagnose zusätzlich:
+Die Diagnose zeigt zusaetzlich:
 
 - den Grund des letzten Neustarts,
 - die PDO-Fehlerquote in Prozent,
@@ -266,12 +269,21 @@ https://ashleyvargrand.github.io/GerlCraft-Zehnder-Bridge/
 
 Das Paket enthaelt:
 
+- `custom-card/gerlcraft-zehnder-card.js` als empfohlene responsive
+  Anlagenvisualisierung mit animierten Luftstroemen,
+- `view-custom-card.yaml` als fertige vollbreite Seite fuer ein vorhandenes
+  Dashboard,
 - `dashboard-native.yaml` ohne zusaetzliche Home-Assistant-Karten,
 - `dashboard-animated.yaml` mit einer dezenten Animation und `button-card`,
 - `view-native.yaml` als einzelne Seite fuer ein vorhandenes Dashboard,
 - `view-animated.yaml` als einzelne animierte Seite fuer ein vorhandenes
   Dashboard,
-- `README.md` mit der genauen Import- und Anpassungsanleitung.
+- `README.md` und `custom-card/INSTALLATION.md` mit der genauen Einrichtung.
+
+Fuer ein bestehendes Dashboard wird die GerlCraft Zehnder Card empfohlen. Sie
+erkennt den Entity-Praefix automatisch und benoetigt keine weitere HACS-Karte.
+Hierfuer zuerst die JavaScript-Datei als Home-Assistant-Ressource eintragen und
+danach `view-custom-card.yaml` als neue Ansicht hinzufuegen.
 
 Fuer ein neues, leeres Dashboard den kompletten Inhalt einer
 `dashboard-*.yaml` verwenden. Bei einem bereits vorhandenen Dashboard im

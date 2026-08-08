@@ -1,6 +1,15 @@
-# Zehnder ComfoAir Bridge
+# GerlCraft Zehnder Bridge
 
-ESP32-S3-Gateway fuer Zehnder ComfoAir Q ueber CAN.
+Open-Source-Bridge auf Basis eines ESP32-S3 fuer die lokale Einbindung einer
+Zehnder ComfoAir Q in MQTT und Home Assistant. Die Firmware laeuft auf einem
+M5Stack AtomS3 Lite mit Atomic CAN Base, liest Betriebs-, Klima-, Energie- und
+Diagnosewerte ueber ComfoNet/CAN und stellt sie per Weboberflaeche, JSON-API
+und MQTT Discovery bereit.
+
+Version 1.0.0 bietet einen Browser-Installer, ein Setup-WLAN, eine geschuetzte
+Web-Konfiguration, OTA-Updates sowie ein fertiges Home-Assistant-Paket mit
+eigener responsiver Anlagenkarte. Die Bridge sendet PDO-Leseanfragen, aber
+keine Steuerbefehle fuer Luefterstufe, Bypass oder Betriebsart.
 
 ## Installation
 
@@ -8,7 +17,7 @@ Die vollstaendige Anleitung fuer Einsteiger befindet sich hier:
 
 **[Schritt-fuer-Schritt-Installation](docs/INSTALLATION.md)**
 
-Ab v0.9.8 kann ein neuer AtomS3 Lite ohne Visual Studio Code direkt mit dem
+Ein neuer AtomS3 Lite kann ohne Visual Studio Code direkt mit dem
 [Browser-Installer](https://ashleyvargrand.github.io/GerlCraft-Zehnder-Bridge/)
 geflasht werden. Dies ist der empfohlene Installationsweg fuer normale Nutzer.
 
@@ -24,7 +33,7 @@ Kurzablauf:
 7. Bridge neu starten und erst danach spannungsfrei mit dem ComfoNet
    verbinden.
 
-## Unterstuetzter Stand
+## Funktionsumfang von v1.0.0
 
 - Getestet mit Zehnder ComfoAir Q350
 - CAN-Kommunikation mit M5Stack AtomS3 Lite und Atomic CAN Base
@@ -34,16 +43,16 @@ Kurzablauf:
 - OTA-Updates
 - Zehnder-Verfuegbarkeitsueberwachung
 - Diagnosebericht
-- Web-Konfiguration
-- Setup-WLAN fuer Erstinbetriebnahme ab v0.9.6
-- ruhigere Webpanel-Aktualisierung ab v0.9.7
-- reproduzierbarer Build und Browser-Installer ab v0.9.8
-- PDO-Fehlerquote, letzter CAN-Sendefehler und Neustartgrund ab v0.9.9
-- einstellbare Aktualisierung der Webansichten ab v1.0.0
+- Setup-WLAN fuer die Erstinbetriebnahme
+- geschuetzte Web-Konfiguration ohne erneutes Kompilieren
+- reproduzierbarer Build und Browser-Installer
+- PDO-Fehlerquote, letzter CAN-Sendefehler und Neustartgrund
+- einstellbare Aktualisierung der Webansichten
+- fertige Home-Assistant-Dashboards und responsive Custom Card
 
 Q450 und Q600 sind noch nicht als verifiziert markiert.
 
-## Erstinbetriebnahme ab v0.9.6
+## Erstinbetriebnahme
 
 Ein neuer Nutzer muss keine Zugangsdaten mehr im Quellcode eintragen.
 

@@ -2,7 +2,10 @@
 
 Dieses Paket enthaelt fertige Dashboards und einzelne Ansichten fuer die
 Zehnder ComfoAir Bridge. Alle Varianten sind reine Anzeigen. Sie senden keine
-Befehle an die Lueftungsanlage.
+Befehle an die Lueftungsanlage. Fuer ein bestehendes Dashboard wird die
+responsive GerlCraft Zehnder Card empfohlen: Sie bildet die Anlage als
+zusammenhaengende Ansicht ab, erkennt den Entity-Praefix automatisch und
+benoetigt keine weitere HACS-Karte.
 
 ## Varianten
 
@@ -26,7 +29,7 @@ Seite fuer ein bestehendes Dashboard liegt in `view-custom-card.yaml`.
 - keine Zusatzinstallation erforderlich
 - verwendet nur Home-Assistant-Karten
 - zwei Ansichten: Uebersicht und 24-Stunden-Verlauf
-- fuer die schnellste und robusteste Einrichtung empfohlen
+- robuste Alternative fuer ein neues, vollstaendig natives Dashboard
 
 ### `dashboard-animated.yaml`
 

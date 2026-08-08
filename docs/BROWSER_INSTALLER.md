@@ -1,7 +1,8 @@
 # Browser-Installer fuer Maintainer
 
-Ab v0.9.8 erzeugt jeder PlatformIO-Build automatisch ein geprueftes
-Release-Paket und eine statische ESP-Web-Tools-Seite.
+Der Release-Build erzeugt automatisch ein geprueftes Firmware-Paket, eine
+statische ESP-Web-Tools-Seite und das aktuelle Home-Assistant-Dashboard-Paket.
+Die Versionsnummer wird zentral aus `include/core/app_config.h` uebernommen.
 
 ## Lokaler Build
 
@@ -20,8 +21,8 @@ dist/
 |  |- build-info.json
 |  `- firmware/*.factory.bin
 |- release-package/
-|- zehnder-comfoair-bridge-v1.0.0.zip
-`- zehnder-comfoair-bridge-v1.0.0.sha256
+|- zehnder-comfoair-bridge-v<VERSION>.zip
+`- zehnder-comfoair-bridge-v<VERSION>.sha256
 ```
 
 Die Factory-Firmware enthaelt Bootloader, Partitionstabelle, OTA-Bootloader
