@@ -27,6 +27,8 @@ Die animierte Variante ist fuer `button-card` 7.0 oder neuer erstellt.
 - fuegen nur die Seite `Zehnder` zu einem bestehenden Dashboard hinzu
 - veraendern keine bereits vorhandenen Seiten
 - verwenden den eindeutigen URL-Pfad `zehnder`
+- verwenden ein kompaktes Drei-Spalten-Layout mit festen Kartengroessen
+- zeigen zeitweise nicht verfuegbare Rueckgewinnungswerte ohne Fehlermeldung an
 - `view-native.yaml` benoetigt keine Zusatzkarte
 - `view-animated.yaml` benoetigt `button-card`, aber keine globale
   `button_card_templates`-Konfiguration
