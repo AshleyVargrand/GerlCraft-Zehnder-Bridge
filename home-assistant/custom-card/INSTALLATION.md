@@ -14,7 +14,7 @@ Befehle an die Lueftungsanlage.
 3. Eine JavaScript-Modulressource hinzufuegen:
 
    ```text
-   /local/gerlcraft-zehnder-card.js?v=1.0.0
+   /local/gerlcraft-zehnder-card.js?v=1.0.1
    ```
 
 4. Das vorhandene Dashboard im Raw-Konfigurationseditor oeffnen.

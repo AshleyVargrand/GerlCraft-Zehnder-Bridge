@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.0.0";
+const CARD_VERSION = "1.0.1";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -348,9 +348,10 @@ class GerlCraftZehnderCard extends HTMLElement {
 
         ha-card {
           display: block;
-          width: min(1320px, calc(100% - 24px));
-          margin: 12px auto 28px;
-          border-radius: 8px;
+          width: 100%;
+          min-height: calc(100dvh - 56px);
+          margin: 0;
+          border-radius: 0;
           overflow: hidden;
           background: var(--ha-card-background, var(--card-background-color));
           color: var(--primary-text-color);
@@ -362,7 +363,12 @@ class GerlCraftZehnderCard extends HTMLElement {
           font: inherit;
         }
 
-        .shell { padding: 22px; }
+        .shell {
+          display: flex;
+          flex-direction: column;
+          min-height: calc(100dvh - 56px);
+          padding: 22px;
+        }
 
         .header {
           display: flex;
@@ -438,8 +444,15 @@ class GerlCraftZehnderCard extends HTMLElement {
         .overview {
           display: grid;
           grid-template-columns: minmax(0, 1.55fr) minmax(310px, 0.75fr);
+          flex: 1;
           gap: 22px;
           padding: 22px 0;
+        }
+
+        .overview > section {
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
         }
 
         .section-label {
@@ -458,6 +471,7 @@ class GerlCraftZehnderCard extends HTMLElement {
             "outdoor intake unit supply-duct supply"
             "exhaust exhaust-duct unit extract-duct extract";
           grid-template-rows: 1fr 1fr;
+          flex: 1;
           gap: 22px 10px;
           min-height: 330px;
           padding: 22px 16px;
@@ -593,7 +607,8 @@ class GerlCraftZehnderCard extends HTMLElement {
 
         .operation {
           display: grid;
-          align-content: start;
+          grid-template-rows: auto 1fr;
+          align-content: stretch;
           gap: 18px;
           min-width: 0;
         }
@@ -621,6 +636,7 @@ class GerlCraftZehnderCard extends HTMLElement {
         .metric-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-auto-rows: 1fr;
           border-top: 1px solid var(--divider-color);
         }
 
@@ -700,7 +716,7 @@ class GerlCraftZehnderCard extends HTMLElement {
         }
 
         @media (max-width: 900px) {
-          ha-card { width: min(760px, calc(100% - 16px)); margin-top: 8px; }
+          ha-card { width: 100%; margin: 0; }
           .overview { grid-template-columns: 1fr; }
           .footer-grid { grid-template-columns: 1fr; }
         }
