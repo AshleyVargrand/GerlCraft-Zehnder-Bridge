@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.0.3";
+const CARD_VERSION = "1.0.4";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -693,9 +693,9 @@ class GerlCraftZehnderCard extends HTMLElement {
         .footer-panel {
           display: grid;
           align-content: start;
-          gap: 14px;
+          gap: 18px;
           min-width: 0;
-          padding: 17px;
+          padding: 20px 22px;
           background: var(--ha-card-background, var(--card-background-color));
         }
 
@@ -704,17 +704,17 @@ class GerlCraftZehnderCard extends HTMLElement {
           align-items: center;
           gap: 8px;
           color: var(--secondary-text-color);
-          font-size: 13px;
+          font-size: 16px;
           font-weight: 650;
         }
 
-        .footer-title ha-icon { width: 19px; }
-        .footer-values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
-        .footer-value { display: grid; gap: 3px; min-width: 0; cursor: pointer; }
-        .footer-value span { color: var(--secondary-text-color); font-size: 11px; }
-        .footer-value strong { overflow: hidden; font-size: 18px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
-        .footer-value strong small { margin-left: 3px; color: var(--secondary-text-color); font-size: 10px; font-weight: 500; }
-        .metric-hint { color: var(--secondary-text-color); font-size: 10px; }
+        .footer-title ha-icon { width: 23px; }
+        .footer-values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .footer-value { display: grid; gap: 5px; min-width: 0; cursor: pointer; }
+        .footer-value span { color: var(--secondary-text-color); font-size: 14px; }
+        .footer-value strong { overflow: hidden; font-size: 22px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+        .footer-value strong small { margin-left: 4px; color: var(--secondary-text-color); font-size: 13px; font-weight: 500; }
+        .metric-hint { color: var(--secondary-text-color); font-size: 13px; }
         .footer-value.unavailable strong { color: var(--disabled-text-color); }
         .footer-value.unavailable strong small { display: none; }
 
