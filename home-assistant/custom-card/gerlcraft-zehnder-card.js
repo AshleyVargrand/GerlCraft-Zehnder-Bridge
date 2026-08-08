@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.0.1";
+const CARD_VERSION = "1.0.2";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -423,19 +423,25 @@ class GerlCraftZehnderCard extends HTMLElement {
         .badge {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          min-height: 30px;
-          padding: 0 11px;
+          gap: 8px;
+          min-height: 42px;
+          padding: 5px 12px;
           border: 1px solid var(--divider-color);
-          border-radius: 15px;
+          border-radius: 6px;
           color: var(--secondary-text-color);
           background: color-mix(in srgb, var(--primary-text-color) 3%, transparent);
-          font-size: 12px;
-          font-weight: 600;
           white-space: nowrap;
         }
 
-        .badge ha-icon { width: 17px; }
+        .badge ha-icon { width: 18px; }
+        .badge-copy { display: grid; gap: 1px; line-height: 1.1; }
+        .badge-label {
+          color: var(--secondary-text-color);
+          font-size: 9px;
+          font-weight: 500;
+          text-transform: uppercase;
+        }
+        .badge-value { font-size: 12px; font-weight: 650; }
         .connected #connection-badge { color: var(--success-color); }
         .disconnected #connection-badge { color: var(--error-color); }
         .badge.ok { color: var(--success-color); }
@@ -723,8 +729,14 @@ class GerlCraftZehnderCard extends HTMLElement {
 
         @media (max-width: 620px) {
           .shell { padding: 15px; }
-          .header { align-items: flex-start; }
-          .badges .badge:not(#connection-badge) { display: none; }
+          .header { flex-direction: column; align-items: stretch; gap: 12px; }
+          .badges {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr));
+            width: 100%;
+            gap: 6px;
+          }
+          .badge { justify-content: center; min-width: 0; padding-inline: 6px; }
           .identity { grid-template-columns: 44px 1fr; column-gap: 10px; }
           .identity .fan-wrap { width: 44px; height: 44px; }
           h2 {
@@ -770,9 +782,18 @@ class GerlCraftZehnderCard extends HTMLElement {
               <div class="subtitle">GerlCraft HVAC Bridge</div>
             </div>
             <div class="badges">
-              <span class="badge" id="connection-badge"><ha-icon icon="mdi:lan-connect"></ha-icon><span id="connection">–</span></span>
-              <span class="badge" id="bridge-badge"><ha-icon icon="mdi:heart-pulse"></ha-icon><span id="bridge-health">–</span></span>
-              <span class="badge" id="filter-badge"><ha-icon icon="mdi:air-filter"></ha-icon><span id="filter-status">–</span></span>
+              <span class="badge" id="connection-badge">
+                <ha-icon icon="mdi:lan-connect"></ha-icon>
+                <span class="badge-copy"><span class="badge-label">Verbindung</span><strong class="badge-value" id="connection">–</strong></span>
+              </span>
+              <span class="badge" id="bridge-badge">
+                <ha-icon icon="mdi:heart-pulse"></ha-icon>
+                <span class="badge-copy"><span class="badge-label">Bridge</span><strong class="badge-value" id="bridge-health">–</strong></span>
+              </span>
+              <span class="badge" id="filter-badge">
+                <ha-icon icon="mdi:air-filter"></ha-icon>
+                <span class="badge-copy"><span class="badge-label">Filter</span><strong class="badge-value" id="filter-status">–</strong></span>
+              </span>
             </div>
           </header>
 
