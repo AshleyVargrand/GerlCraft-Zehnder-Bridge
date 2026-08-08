@@ -39,6 +39,7 @@ Kurzablauf:
 - ruhigere Webpanel-Aktualisierung ab v0.9.7
 - reproduzierbarer Build und Browser-Installer ab v0.9.8
 - PDO-Fehlerquote, letzter CAN-Sendefehler und Neustartgrund ab v0.9.9
+- einstellbare Aktualisierung der Webansichten ab v1.0.0
 
 Q450 und Q600 sind noch nicht als verifiziert markiert.
 
@@ -68,6 +69,7 @@ Dort wird die Konfigurationsseite angezeigt. Eingetragen werden:
 - Hostname fuer mDNS
 - optionaler DNS-Name
 - sichtbarer Geraetename
+- Aktualisierung der Webansichten: Aus, 10, 15, 30 oder 60 Sekunden
 
 Nach dem Speichern die Bridge neu starten. Danach verbindet sie sich mit
 dem Heimnetz und ist normalerweise erreichbar unter:

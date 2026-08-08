@@ -2,6 +2,8 @@
 
 #include <limits.h>
 
+#include "core/web_refresh.h"
+
 namespace
 {
     using ZehnderDecoder::SensorCategory;
@@ -840,8 +842,11 @@ json += ",";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="15">
-    <title>Zehnder ComfoAir Q</title>
+)HTML";
+
+        WebRefresh::appendMetaTag(html);
+
+        html += R"HTML(    <title>Zehnder ComfoAir Q</title>
 
     <style>
         body {

@@ -47,13 +47,14 @@ namespace AppConfig
     constexpr uint32_t SERIAL_BAUD_RATE = 115200;
     constexpr uint32_t WIFI_CONNECT_TIMEOUT_MS = 20000;
     constexpr uint32_t WIFI_RECONNECT_INTERVAL_MS = 10000;
+    constexpr uint16_t WEB_REFRESH_DEFAULT_SECONDS = 15;
 
     /*
      * Interne IDs bleiben absichtlich unverändert, damit bestehende
      * MQTT- und Home-Assistant-Entitäten nicht doppelt angelegt werden.
      */
     constexpr char PROJECT_ID[] = "gerlcraft-hvac-bridge";
-    constexpr char FIRMWARE_VERSION[] = "0.9.9";
+    constexpr char FIRMWARE_VERSION[] = "1.0.0";
     constexpr char BOARD_NAME[] = "M5Stack AtomS3 Lite";
 
 #if defined(DEVICE_PROFILE_ZEHNDER)

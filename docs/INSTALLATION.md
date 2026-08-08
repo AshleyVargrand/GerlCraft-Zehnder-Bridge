@@ -165,9 +165,14 @@ Folgende Angaben werden gespeichert:
 | Hostname | Lokaler Name ohne `.local`, z. B. `zehnder-bridge` |
 | DNS-Name | Optionaler, im Router eingerichteter lokaler DNS-Name |
 | Geraetename | Sichtbarer Name auf Weboberflaeche und in Home Assistant |
+| Web-Aktualisierung | Aus oder automatisch alle 10, 15, 30 oder 60 Sekunden |
 
 Ein eigenes, ausreichend langes Admin-/OTA-Passwort verwenden und sicher
 aufbewahren.
+
+Die Web-Aktualisierung gilt fuer Uebersicht, Zehnder-Werte, CAN-Monitor und
+Diagnose. Sie beeinflusst weder die CAN-/PDO-Abfragen noch das MQTT-Intervall.
+Der Standardwert ist 15 Sekunden.
 
 Nach dem Speichern die Bridge neu starten. Dazu die USB- beziehungsweise
 5-V-Versorgung kurz trennen und wieder anschliessen.

@@ -19,6 +19,8 @@ namespace ConfigManager
         String hostname;
         String dnsName;
         String deviceName;
+
+        uint16_t webRefreshSeconds = 15;
     };
 
     struct ValidationResult

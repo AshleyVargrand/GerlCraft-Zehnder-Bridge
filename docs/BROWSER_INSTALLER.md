@@ -20,8 +20,8 @@ dist/
 |  |- build-info.json
 |  `- firmware/*.factory.bin
 |- release-package/
-|- zehnder-comfoair-bridge-v0.9.9.zip
-`- zehnder-comfoair-bridge-v0.9.9.sha256
+|- zehnder-comfoair-bridge-v1.0.0.zip
+`- zehnder-comfoair-bridge-v1.0.0.sha256
 ```
 
 Die Factory-Firmware enthaelt Bootloader, Partitionstabelle, OTA-Bootloader

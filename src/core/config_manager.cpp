@@ -50,6 +50,15 @@ namespace
     constexpr size_t DNS_NAME_MAX_LENGTH = 253;
     constexpr size_t DEVICE_NAME_MAX_LENGTH = 64;
 
+    bool isValidWebRefreshSeconds(const uint16_t seconds)
+    {
+        return seconds == 0
+            || seconds == 10
+            || seconds == 15
+            || seconds == 30
+            || seconds == 60;
+    }
+
     ConfigManager::Settings settings;
     bool loaded = false;
     bool storedSettingsFound = false;
@@ -189,6 +198,8 @@ namespace
         settings.hostname = AppConfig::HOSTNAME;
         settings.dnsName = AppConfig::DNS_NAME;
         settings.deviceName = AppConfig::DEVICE_NAME;
+        settings.webRefreshSeconds =
+            AppConfig::WEB_REFRESH_DEFAULT_SECONDS;
     }
 
     String readStringOrDefault(
@@ -293,6 +304,12 @@ namespace ConfigManager
                 "dev_name",
                 settings.deviceName
             );
+
+            settings.webRefreshSeconds =
+                preferences.getUShort(
+                    "web_refresh",
+                    settings.webRefreshSeconds
+                );
         }
 
         preferences.end();
@@ -484,6 +501,17 @@ namespace ConfigManager
             return result;
         }
 
+        if (!isValidWebRefreshSeconds(
+                candidate.webRefreshSeconds
+            ))
+        {
+            result.valid = false;
+            result.message =
+                "Web-Aktualisierung muss Aus, 10, 15, 30 "
+                "oder 60 Sekunden sein.";
+            return result;
+        }
+
         return result;
     }
 
@@ -515,6 +543,10 @@ namespace ConfigManager
         preferences.putString("hostname", candidate.hostname);
         preferences.putString("dns_name", candidate.dnsName);
         preferences.putString("dev_name", candidate.deviceName);
+        preferences.putUShort(
+            "web_refresh",
+            candidate.webRefreshSeconds
+        );
 
         preferences.end();
 

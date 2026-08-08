@@ -31,6 +31,8 @@ Test auf einem nicht produktiv angeschlossenen AtomS3 Lite:
 - [ ] Setup-WLAN `Zehnder-Bridge-Setup` erscheint.
 - [ ] Konfigurationsseite ist unter `http://192.168.4.1` erreichbar.
 - [ ] WLAN, MQTT, Hostname, Gerätename und Admin-Passwort lassen sich speichern.
+- [ ] Web-Aktualisierung lässt sich auf Aus, 10, 15, 30 und 60 Sekunden setzen.
+- [ ] Ungültige Aktualisierungswerte werden serverseitig abgelehnt.
 - [ ] Nach dem Neustart verbindet sich die Bridge mit dem Heimnetz.
 
 ## 4. Update

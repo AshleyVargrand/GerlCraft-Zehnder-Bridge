@@ -1,4 +1,4 @@
-Zehnder ComfoAir Bridge - v0.9.9 - Schnellstart
+Zehnder ComfoAir Bridge - v1.0.0 - Schnellstart
 
 Ausfuehrliche Anleitung
 -----------------------
@@ -72,6 +72,7 @@ Eintragen:
 - Hostname
 - optionaler DNS-Name
 - sichtbarer Geraetename
+- Aktualisierung der Webansichten: Aus, 10, 15, 30 oder 60 Sekunden
 
 Speichern.
 

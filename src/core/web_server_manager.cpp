@@ -10,6 +10,7 @@
 #include "core/mqtt_manager.h"
 #include "core/network_manager.h"
 #include "core/ota_manager.h"
+#include "core/web_refresh.h"
 #include "devices/active_device.h"
 
 namespace
@@ -206,6 +207,27 @@ namespace
         return escaped;
     }
 
+    void appendRefreshOption(
+        String& html,
+        const uint16_t value,
+        const char* label,
+        const uint16_t selectedValue
+    )
+    {
+        html += "<option value=\"";
+        html += String(value);
+        html += "\"";
+
+        if (value == selectedValue)
+        {
+            html += " selected";
+        }
+
+        html += ">";
+        html += label;
+        html += "</option>";
+    }
+
     bool requireConfigAuth()
     {
         if (
@@ -291,7 +313,8 @@ namespace
             font-size: 14px;
         }
 
-        input {
+        input,
+        select {
             width: 100%;
             box-sizing: border-box;
             padding: 11px 12px;
@@ -501,11 +524,60 @@ namespace
         </div>
 
         <div class="card">
+            <h2>Anzeige</h2>
+
+            <label for="web_refresh">
+                Webseiten automatisch aktualisieren
+            </label>
+            <select id="web_refresh" name="web_refresh" required>
+)HTML";
+
+        appendRefreshOption(
+            html,
+            0,
+            "Aus",
+            config.webRefreshSeconds
+        );
+        appendRefreshOption(
+            html,
+            10,
+            "Alle 10 Sekunden",
+            config.webRefreshSeconds
+        );
+        appendRefreshOption(
+            html,
+            15,
+            "Alle 15 Sekunden (Standard)",
+            config.webRefreshSeconds
+        );
+        appendRefreshOption(
+            html,
+            30,
+            "Alle 30 Sekunden",
+            config.webRefreshSeconds
+        );
+        appendRefreshOption(
+            html,
+            60,
+            "Alle 60 Sekunden",
+            config.webRefreshSeconds
+        );
+
+        html += R"HTML(
+            </select>
+            <div class="hint">
+                Gilt für Übersicht, Zehnder-Werte, CAN-Monitor und
+                Diagnose. CAN-Abfragen und MQTT werden nicht verändert.
+            </div>
+        </div>
+
+        <div class="card">
             <h2>Speichern</h2>
             <div class="hint">
                 Änderungen werden dauerhaft im ESP32 gespeichert.
                 WLAN, Hostname, MQTT und Home-Assistant-Discovery
-                verwenden die neuen Werte nach einem Neustart.
+                verwenden die neuen Werte nach einem Neustart. Die
+                Webseiten-Aktualisierung gilt sofort.
             </div>
             <div class="actions">
                 <button type="submit">Speichern</button>
@@ -585,6 +657,34 @@ namespace
         settings.dnsName = server.arg("dns_name");
         settings.deviceName = server.arg("device_name");
 
+        const String webRefresh =
+            server.arg("web_refresh");
+
+        if (webRefresh == "0")
+        {
+            settings.webRefreshSeconds = 0;
+        }
+        else if (webRefresh == "10")
+        {
+            settings.webRefreshSeconds = 10;
+        }
+        else if (webRefresh == "15")
+        {
+            settings.webRefreshSeconds = 15;
+        }
+        else if (webRefresh == "30")
+        {
+            settings.webRefreshSeconds = 30;
+        }
+        else if (webRefresh == "60")
+        {
+            settings.webRefreshSeconds = 60;
+        }
+        else
+        {
+            settings.webRefreshSeconds = UINT16_MAX;
+        }
+
         settings.wifiSsid.trim();
         settings.mqttHost.trim();
         settings.mqttUsername.trim();
@@ -609,8 +709,11 @@ namespace
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="15">
-    <title>)HTML";
+)HTML";
+
+        WebRefresh::appendMetaTag(html);
+
+        html += R"HTML(    <title>)HTML";
 
         html += htmlEscape(ConfigManager::get().deviceName);
 
@@ -970,7 +1073,11 @@ namespace
     </div>
 
     <div class="footer">
-        Die Seite wird alle 15 Sekunden aktualisiert.
+)HTML";
+
+        html += WebRefresh::getStatusText();
+
+        html += R"HTML(
     </div>
 </div>
 </body>
@@ -1012,6 +1119,12 @@ namespace
         json += "\"configuration_url\":\"";
         json += ConfigManager::getConfigurationUrl();
         json += "\",";
+
+        json += "\"web_refresh_seconds\":";
+        json += String(
+            ConfigManager::get().webRefreshSeconds
+        );
+        json += ",";
 
         json += "\"uptime_seconds\":";
         json += String(millis() / 1000);
@@ -1110,7 +1223,7 @@ namespace
 
         json += "{";
 
-        json += "\"report_version\":2,";
+        json += "\"report_version\":3,";
 
         json += "\"overall_health\":\"";
         json += getOverallHealthText();
@@ -1141,6 +1254,11 @@ namespace
         json += "\"restart_reason_code\":";
         json += String(
             static_cast<int>(esp_reset_reason())
+        );
+        json += ",";
+        json += "\"web_refresh_seconds\":";
+        json += String(
+            ConfigManager::get().webRefreshSeconds
         );
         json += "},";
 
@@ -1252,8 +1370,11 @@ namespace
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="10">
-    <title>Diagnose – )HTML";
+)HTML";
+
+        WebRefresh::appendMetaTag(html);
+
+        html += R"HTML(    <title>Diagnose – )HTML";
 
         html += htmlEscape(ConfigManager::get().deviceName);
 
@@ -1765,9 +1886,10 @@ namespace WebServerManager
                 200,
                 "text/html; charset=utf-8",
                 createConfigPage(
-                    "Konfiguration gespeichert. Bitte Bridge neu starten, "
-                    "damit WLAN, Hostname, MQTT und Home Assistant die "
-                    "neuen Werte verwenden.",
+                    "Konfiguration gespeichert. Die Anzeigeeinstellung "
+                    "gilt sofort. Bitte Bridge neu starten, damit WLAN, "
+                    "Hostname, MQTT und Home Assistant die neuen Werte "
+                    "verwenden.",
                     true
                 )
             );

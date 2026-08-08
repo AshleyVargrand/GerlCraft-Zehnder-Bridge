@@ -3,6 +3,8 @@
 #include <driver/twai.h>
 #include <esp_err.h>
 
+#include "core/web_refresh.h"
+
 namespace
 {
     constexpr gpio_num_t CAN_TX_PIN = GPIO_NUM_5;
@@ -654,7 +656,11 @@ namespace CanMonitor
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="2">
+)HTML";
+
+        WebRefresh::appendMetaTag(html);
+
+        html += R"HTML(
 
     <title>Zehnder CAN Monitor</title>
 
