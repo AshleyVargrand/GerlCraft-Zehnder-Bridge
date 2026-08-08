@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.0.4";
+const CARD_VERSION = "1.0.7";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -588,8 +588,24 @@ class GerlCraftZehnderCard extends HTMLElement {
         }
 
         .exchanger::after { transform: rotate(-45deg); }
-        .exchanger ha-icon { z-index: 1; width: 38px; }
-        .connected .exchanger ha-icon { animation: fan-spin var(--fan-duration) linear infinite; }
+        .exchanger-fan {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          place-items: center;
+          width: 32px;
+          height: 32px;
+          line-height: 0;
+          transform-origin: 16px 16px;
+          will-change: transform;
+        }
+        .exchanger-fan ha-icon {
+          display: block;
+          width: 28px;
+          height: 28px;
+          --mdc-icon-size: 28px;
+        }
+        .connected .exchanger-fan { animation: fan-spin var(--fan-duration) linear infinite; }
         .unit-name { font-size: 13px; font-weight: 650; }
         .unit-mode { color: var(--secondary-text-color); font-size: 11px; text-align: center; }
         .free-cooling .unit-mode { color: var(--info-color); }
@@ -819,7 +835,7 @@ class GerlCraftZehnderCard extends HTMLElement {
                 </div>
                 <div class="duct intake"><span></span><span></span><span></span></div>
                 <div class="unit-core">
-                  <div class="exchanger"><ha-icon icon="mdi:fan"></ha-icon></div>
+                  <div class="exchanger"><span class="exchanger-fan"><ha-icon icon="mdi:fan"></ha-icon></span></div>
                   <span class="unit-name">Wärmetauscher</span>
                   <span class="unit-mode"><span id="free-cooling">–</span> · <span id="free-cooling-reason">–</span></span>
                   <div class="bypass-track"><i class="bypass-gate"></i></div>
