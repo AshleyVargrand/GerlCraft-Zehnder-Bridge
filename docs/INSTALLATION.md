@@ -228,6 +228,17 @@ Die Diagnose ist erreichbar unter:
 http://DEIN-HOSTNAME.local/diagnostics
 ```
 
+Ab v0.9.9 zeigt die Diagnose zusätzlich:
+
+- den Grund des letzten Neustarts,
+- die PDO-Fehlerquote in Prozent,
+- die zuletzt nicht eingereihte PDO-Anfrage und deren Alter.
+
+Einzelne fehlgeschlagene PDO-Anfragen sind nicht automatisch ein
+ComfoNet-Fehler. Eine Warnung erscheint erst ab mindestens 100 Versuchen und
+einer Fehlerquote von 1 Prozent. Entscheidend bleiben ein aktiver CAN-Bus und
+aktuelle Antworten der Zehnder-Anlage.
+
 ## 9. MQTT und Home Assistant
 
 Home Assistant benoetigt eine eingerichtete MQTT-Integration und muss

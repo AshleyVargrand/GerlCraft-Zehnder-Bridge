@@ -1,4 +1,4 @@
-Zehnder ComfoAir Bridge - v0.9.8 - Schnellstart
+Zehnder ComfoAir Bridge - v0.9.9 - Schnellstart
 
 Ausfuehrliche Anleitung
 -----------------------

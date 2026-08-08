@@ -19,6 +19,12 @@ namespace ActiveDevice
     uint64_t getCanFrameCount();
     uint32_t getPdoRequestsSent();
     uint32_t getPdoRequestsFailed();
+    uint32_t getPdoRequestCount();
+    float getPdoRequestFailureRatePercent();
+    bool isPdoRequestFailureRateHigh();
+    uint16_t getLastPdoFailureId();
+    uint32_t getLastPdoFailureAgeSeconds();
+    String getLastPdoFailureText();
     uint32_t getLastUpdateAgeSeconds();
     String getBridgeHealthText();
 

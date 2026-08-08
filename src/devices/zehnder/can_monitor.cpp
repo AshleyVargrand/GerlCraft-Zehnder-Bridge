@@ -15,8 +15,37 @@ namespace
     // Eigene Teilnehmeradresse für PDO-Leseanfragen
     constexpr uint8_t LOCAL_NODE_ID = 0x3E;
 
+    constexpr uint32_t PDO_FAILURE_WARNING_MIN_REQUESTS = 100;
+    constexpr uint32_t PDO_FAILURE_WARNING_PERCENT = 1;
+
+    enum class PdoFailureReason
+    {
+        None,
+        DriverStopped,
+        NotAllowed,
+        TransmitError
+    };
+
     uint32_t pdoRequestsSent = 0;
     uint32_t pdoRequestsFailed = 0;
+    uint16_t lastPdoFailureId = 0;
+    uint32_t lastPdoFailureAt = 0;
+    esp_err_t lastPdoTransmitError = ESP_OK;
+    PdoFailureReason lastPdoFailureReason =
+        PdoFailureReason::None;
+
+    void recordPdoFailure(
+        const uint16_t pdoId,
+        const PdoFailureReason reason,
+        const esp_err_t transmitError = ESP_OK
+    )
+    {
+        pdoRequestsFailed++;
+        lastPdoFailureId = pdoId;
+        lastPdoFailureAt = millis();
+        lastPdoFailureReason = reason;
+        lastPdoTransmitError = transmitError;
+    }
 
     bool isAllowedPdoRequest(const uint16_t pdoId)
     {
@@ -250,7 +279,10 @@ namespace CanMonitor
                 "PDO-Anfrage abgelehnt: CAN-Treiber laeuft nicht"
             );
 
-            pdoRequestsFailed++;
+            recordPdoFailure(
+                pdoId,
+                PdoFailureReason::DriverStopped
+            );
             return false;
         }
 
@@ -261,7 +293,10 @@ namespace CanMonitor
                 pdoId
             );
 
-            pdoRequestsFailed++;
+            recordPdoFailure(
+                pdoId,
+                PdoFailureReason::NotAllowed
+            );
             return false;
         }
 
@@ -290,7 +325,11 @@ namespace CanMonitor
                 esp_err_to_name(result)
             );
 
-            pdoRequestsFailed++;
+            recordPdoFailure(
+                pdoId,
+                PdoFailureReason::TransmitError,
+                result
+            );
             return false;
         }
 
@@ -313,6 +352,80 @@ namespace CanMonitor
     uint32_t getPdoRequestsFailed()
     {
         return pdoRequestsFailed;
+    }
+
+    uint32_t getPdoRequestCount()
+    {
+        return pdoRequestsSent + pdoRequestsFailed;
+    }
+
+    float getPdoRequestFailureRatePercent()
+    {
+        const uint32_t requestCount =
+            getPdoRequestCount();
+
+        if (requestCount == 0)
+        {
+            return 0.0F;
+        }
+
+        return
+            static_cast<float>(pdoRequestsFailed)
+            * 100.0F
+            / static_cast<float>(requestCount);
+    }
+
+    bool isPdoRequestFailureRateHigh()
+    {
+        const uint32_t requestCount =
+            getPdoRequestCount();
+
+        if (
+            requestCount
+            < PDO_FAILURE_WARNING_MIN_REQUESTS
+        )
+        {
+            return false;
+        }
+
+        return
+            static_cast<uint64_t>(pdoRequestsFailed) * 100U
+            >= static_cast<uint64_t>(requestCount)
+                * PDO_FAILURE_WARNING_PERCENT;
+    }
+
+    uint16_t getLastPdoFailureId()
+    {
+        return lastPdoFailureId;
+    }
+
+    uint32_t getLastPdoFailureAgeSeconds()
+    {
+        if (lastPdoFailureReason == PdoFailureReason::None)
+        {
+            return UINT32_MAX;
+        }
+
+        return (millis() - lastPdoFailureAt) / 1000;
+    }
+
+    String getLastPdoFailureText()
+    {
+        switch (lastPdoFailureReason)
+        {
+            case PdoFailureReason::DriverStopped:
+                return "CAN-Treiber gestoppt";
+
+            case PdoFailureReason::NotAllowed:
+                return "PDO nicht freigegeben";
+
+            case PdoFailureReason::TransmitError:
+                return esp_err_to_name(lastPdoTransmitError);
+
+            case PdoFailureReason::None:
+            default:
+                return "Kein Fehler";
+        }
     }
 
     void update()
@@ -402,7 +515,7 @@ namespace CanMonitor
             && twai_get_status_info(&statusInfo) == ESP_OK;
 
         String json;
-        json.reserve(600);
+        json.reserve(1000);
 
         json += "{";
 
@@ -424,6 +537,48 @@ namespace CanMonitor
 
         json += "\"pdo_requests_failed\":";
         json += String(pdoRequestsFailed);
+        json += ",";
+
+        json += "\"pdo_requests_total\":";
+        json += String(getPdoRequestCount());
+        json += ",";
+
+        json += "\"pdo_request_failure_rate_percent\":";
+        json += String(
+            getPdoRequestFailureRatePercent(),
+            3
+        );
+        json += ",";
+
+        json += "\"pdo_request_failure_rate_high\":";
+        json += isPdoRequestFailureRateHigh()
+            ? "true"
+            : "false";
+        json += ",";
+
+        json += "\"last_pdo_failure\":";
+
+        const uint32_t lastFailureAge =
+            getLastPdoFailureAgeSeconds();
+
+        if (lastFailureAge == UINT32_MAX)
+        {
+            json += "null";
+        }
+        else
+        {
+            json += "{";
+            json += "\"pdo_id\":";
+            json += String(getLastPdoFailureId());
+            json += ",";
+            json += "\"age_s\":";
+            json += String(lastFailureAge);
+            json += ",";
+            json += "\"error\":\"";
+            json += getLastPdoFailureText();
+            json += "\"}";
+        }
+
         json += ",";
 
         json += "\"frames_total\":";
@@ -581,7 +736,7 @@ namespace CanMonitor
     <a href="/">← Zur Statusseite</a>
 
     <h1>Zehnder CAN Monitor</h1>
-    <div>Passiver Zehnder-CAN-Logger</div>
+    <div>Zehnder-CAN-Diagnose</div>
 
     <div class="card">
         <div class="status )HTML";
@@ -597,7 +752,47 @@ namespace CanMonitor
         </div>
 
         <p>Bitrate: 50 kbit/s</p>
-        <p>Modus: Listen-only</p>
+        <p>Modus: nur freigegebene PDO-Leseanfragen</p>
+        <p>PDO-Anfragen gesendet: )HTML";
+
+        html += String(pdoRequestsSent);
+
+        html += "</p><p>PDO-Anfragen fehlgeschlagen: ";
+        html += String(pdoRequestsFailed);
+
+        html += "</p><p>PDO-Fehlerquote: ";
+        html += String(
+            getPdoRequestFailureRatePercent(),
+            3
+        );
+        html += " %";
+
+        html += "</p><p>Bewertung: ";
+        html += isPdoRequestFailureRateHigh()
+            ? "Auffaellig"
+            : "OK";
+
+        html += "</p><p>Letzter PDO-Fehler: ";
+
+        const uint32_t lastFailureAge =
+            getLastPdoFailureAgeSeconds();
+
+        if (lastFailureAge == UINT32_MAX)
+        {
+            html += "Kein Fehler";
+        }
+        else
+        {
+            html += "PDO ";
+            html += String(getLastPdoFailureId());
+            html += ", ";
+            html += getLastPdoFailureText();
+            html += ", vor ";
+            html += String(lastFailureAge);
+            html += " s";
+        }
+
+        html += R"HTML(</p>
         <p>Empfangene Frames: )HTML";
 
         html += uint64ToString(receivedFrameCount);

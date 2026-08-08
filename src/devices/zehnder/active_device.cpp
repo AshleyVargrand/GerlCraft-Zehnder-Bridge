@@ -46,6 +46,11 @@ namespace
             return "Zehnder antwortet nicht";
         }
 
+        if (CanMonitor::isPdoRequestFailureRateHigh())
+        {
+            return "PDO-Fehlerquote auffaellig";
+        }
+
         return "OK";
     }
 }
@@ -106,6 +111,36 @@ namespace ActiveDevice
         return CanMonitor::getPdoRequestsFailed();
     }
 
+    uint32_t getPdoRequestCount()
+    {
+        return CanMonitor::getPdoRequestCount();
+    }
+
+    float getPdoRequestFailureRatePercent()
+    {
+        return CanMonitor::getPdoRequestFailureRatePercent();
+    }
+
+    bool isPdoRequestFailureRateHigh()
+    {
+        return CanMonitor::isPdoRequestFailureRateHigh();
+    }
+
+    uint16_t getLastPdoFailureId()
+    {
+        return CanMonitor::getLastPdoFailureId();
+    }
+
+    uint32_t getLastPdoFailureAgeSeconds()
+    {
+        return CanMonitor::getLastPdoFailureAgeSeconds();
+    }
+
+    String getLastPdoFailureText()
+    {
+        return CanMonitor::getLastPdoFailureText();
+    }
+
     uint32_t getLastUpdateAgeSeconds()
     {
         return ZehnderDecoder::getLastUpdateAgeSeconds();
@@ -146,7 +181,7 @@ namespace ActiveDevice
     String createStatusJson()
     {
         String json;
-        json.reserve(700);
+        json.reserve(1100);
 
         json += "{";
 
@@ -204,6 +239,50 @@ namespace ActiveDevice
         json += String(
             CanMonitor::getPdoRequestsFailed()
         );
+        json += ",";
+
+        json += "\"pdo_requests_total\":";
+        json += String(
+            CanMonitor::getPdoRequestCount()
+        );
+        json += ",";
+
+        json += "\"pdo_request_failure_rate_percent\":";
+        json += String(
+            CanMonitor::getPdoRequestFailureRatePercent(),
+            3
+        );
+        json += ",";
+
+        json += "\"pdo_request_failure_rate_high\":";
+        json += CanMonitor::isPdoRequestFailureRateHigh()
+            ? "true"
+            : "false";
+        json += ",";
+
+        json += "\"last_pdo_failure\":";
+
+        const uint32_t lastFailureAge =
+            CanMonitor::getLastPdoFailureAgeSeconds();
+
+        if (lastFailureAge == UINT32_MAX)
+        {
+            json += "null";
+        }
+        else
+        {
+            json += "{";
+            json += "\"pdo_id\":";
+            json += String(CanMonitor::getLastPdoFailureId());
+            json += ",";
+            json += "\"age_s\":";
+            json += String(lastFailureAge);
+            json += ",";
+            json += "\"error\":\"";
+            json += CanMonitor::getLastPdoFailureText();
+            json += "\"}";
+        }
+
         json += ",";
 
         json += "\"bridge_health\":\"";

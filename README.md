@@ -38,6 +38,7 @@ Kurzablauf:
 - Setup-WLAN fuer Erstinbetriebnahme ab v0.9.6
 - ruhigere Webpanel-Aktualisierung ab v0.9.7
 - reproduzierbarer Build und Browser-Installer ab v0.9.8
+- PDO-Fehlerquote, letzter CAN-Sendefehler und Neustartgrund ab v0.9.9
 
 Q450 und Q600 sind noch nicht als verifiziert markiert.
 
@@ -175,6 +176,7 @@ Der Projektcode steht unter der GNU General Public License Version 3
 - [Drittanbieterhinweise](THIRD_PARTY_NOTICES.md)
 - [Lizenz- und Quellen-Audit fuer v0.9.7](docs/LICENSE_AUDIT.md)
 - [Browser-Installer fuer Maintainer](docs/BROWSER_INSTALLER.md)
+- [Release-Checkliste](docs/RELEASE_CHECKLIST.md)
 
 Die Zehnder-PDO-Definitionen wurden insbesondere anhand der MIT-lizenzierten
 Dokumentation von `aiocomfoconnect` erstellt. Die verwendeten Lizenztexte

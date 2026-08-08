@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Esp.h>
 #include <WebServer.h>
+#include <esp_system.h>
 
 #include "core/app_config.h"
 #include "core/config_manager.h"
@@ -59,6 +60,46 @@ namespace
         return String(buffer);
     }
 
+    const char* getRestartReasonText()
+    {
+        switch (esp_reset_reason())
+        {
+            case ESP_RST_POWERON:
+                return "Einschalten";
+            case ESP_RST_EXT:
+                return "Externer Reset";
+            case ESP_RST_SW:
+                return "Software-Neustart";
+            case ESP_RST_PANIC:
+                return "Ausnahme oder Panic";
+            case ESP_RST_INT_WDT:
+                return "Interrupt-Watchdog";
+            case ESP_RST_TASK_WDT:
+                return "Task-Watchdog";
+            case ESP_RST_WDT:
+                return "Watchdog";
+            case ESP_RST_DEEPSLEEP:
+                return "Ende des Deep-Sleep";
+            case ESP_RST_BROWNOUT:
+                return "Unterspannung";
+            case ESP_RST_SDIO:
+                return "SDIO-Reset";
+            case ESP_RST_USB:
+                return "USB-Reset";
+            case ESP_RST_JTAG:
+                return "JTAG-Reset";
+            case ESP_RST_EFUSE:
+                return "eFuse-Fehler";
+            case ESP_RST_PWR_GLITCH:
+                return "Spannungseinbruch";
+            case ESP_RST_CPU_LOCKUP:
+                return "CPU-Sperre";
+            case ESP_RST_UNKNOWN:
+            default:
+                return "Unbekannt";
+        }
+    }
+
     String getOverallHealthText()
     {
         if (!BridgeNetwork::isConnected())
@@ -81,6 +122,11 @@ namespace
             return "Zehnder antwortet nicht";
         }
 
+        if (ActiveDevice::isPdoRequestFailureRateHigh())
+        {
+            return "PDO-Fehlerquote auffaellig";
+        }
+
         if (!MqttManager::isConnected())
         {
             return "MQTT nicht verbunden";
@@ -100,6 +146,26 @@ namespace
         }
 
         String result = String(ageSeconds);
+        result += " s";
+        return result;
+    }
+
+    String formatLastPdoFailure()
+    {
+        const uint32_t ageSeconds =
+            ActiveDevice::getLastPdoFailureAgeSeconds();
+
+        if (ageSeconds == UINT32_MAX)
+        {
+            return "Kein Fehler";
+        }
+
+        String result = "PDO ";
+        result += String(ActiveDevice::getLastPdoFailureId());
+        result += ", ";
+        result += ActiveDevice::getLastPdoFailureText();
+        result += ", vor ";
+        result += String(ageSeconds);
         result += " s";
         return result;
     }
@@ -1044,7 +1110,7 @@ namespace
 
         json += "{";
 
-        json += "\"report_version\":1,";
+        json += "\"report_version\":2,";
 
         json += "\"overall_health\":\"";
         json += getOverallHealthText();
@@ -1068,6 +1134,14 @@ namespace
         json += "\",";
         json += "\"uptime_seconds\":";
         json += String(millis() / 1000);
+        json += ",";
+        json += "\"restart_reason\":\"";
+        json += getRestartReasonText();
+        json += "\",";
+        json += "\"restart_reason_code\":";
+        json += String(
+            static_cast<int>(esp_reset_reason())
+        );
         json += "},";
 
         json += "\"network\":{";
@@ -1337,6 +1411,14 @@ namespace
 
         html += R"HTML(</span>
         </div>
+        <div class="row">
+            <span class="label">Letzter Neustartgrund</span>
+            <span class="value">)HTML";
+
+        html += getRestartReasonText();
+
+        html += R"HTML(</span>
+        </div>
     </div>
 
     <div class="card">
@@ -1507,6 +1589,31 @@ namespace
         html += String(
             ActiveDevice::getPdoRequestsFailed()
         );
+
+        html += R"HTML(</span>
+        </div>
+        <div class="row">
+            <span class="label">PDO-Fehlerquote</span>
+            <span class="value )HTML";
+
+        html += ActiveDevice::isPdoRequestFailureRateHigh()
+            ? "warning"
+            : "online";
+
+        html += "\">";
+        html += String(
+            ActiveDevice::getPdoRequestFailureRatePercent(),
+            3
+        );
+        html += " %";
+
+        html += R"HTML(</span>
+        </div>
+        <div class="row">
+            <span class="label">Letzter PDO-Fehler</span>
+            <span class="value">)HTML";
+
+        html += formatLastPdoFailure();
 
         html += R"HTML(</span>
         </div>
