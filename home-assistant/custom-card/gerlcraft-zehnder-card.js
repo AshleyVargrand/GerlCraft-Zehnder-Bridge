@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.0.2";
+const CARD_VERSION = "1.0.3";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -366,8 +366,11 @@ class GerlCraftZehnderCard extends HTMLElement {
         .shell {
           display: flex;
           flex-direction: column;
+          width: 100%;
+          max-width: 1680px;
           min-height: calc(100dvh - 56px);
-          padding: 22px;
+          margin: 0 auto;
+          padding: 26px 30px;
         }
 
         .header {
@@ -405,7 +408,7 @@ class GerlCraftZehnderCard extends HTMLElement {
           grid-area: title;
           margin: 0;
           overflow: hidden;
-          font-size: 21px;
+          font-size: 24px;
           font-weight: 650;
           letter-spacing: 0;
           text-overflow: ellipsis;
@@ -415,7 +418,7 @@ class GerlCraftZehnderCard extends HTMLElement {
         .subtitle {
           grid-area: subtitle;
           color: var(--secondary-text-color);
-          font-size: 12px;
+          font-size: 14px;
         }
 
         .badges { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
@@ -437,11 +440,11 @@ class GerlCraftZehnderCard extends HTMLElement {
         .badge-copy { display: grid; gap: 1px; line-height: 1.1; }
         .badge-label {
           color: var(--secondary-text-color);
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 500;
           text-transform: uppercase;
         }
-        .badge-value { font-size: 12px; font-weight: 650; }
+        .badge-value { font-size: 14px; font-weight: 650; }
         .connected #connection-badge { color: var(--success-color); }
         .disconnected #connection-badge { color: var(--error-color); }
         .badge.ok { color: var(--success-color); }
@@ -449,22 +452,25 @@ class GerlCraftZehnderCard extends HTMLElement {
 
         .overview {
           display: grid;
-          grid-template-columns: minmax(0, 1.55fr) minmax(310px, 0.75fr);
+          grid-template-columns: minmax(0, 1.42fr) minmax(360px, 0.85fr);
           flex: 1;
-          gap: 22px;
+          gap: 28px;
           padding: 22px 0;
         }
 
         .overview > section {
           display: flex;
           flex-direction: column;
+          align-self: center;
+          width: 100%;
+          height: clamp(480px, 54dvh, 580px);
           min-height: 0;
         }
 
         .section-label {
           margin: 0 0 13px;
           color: var(--secondary-text-color);
-          font-size: 11px;
+          font-size: 13px;
           font-weight: 650;
           letter-spacing: 0;
           text-transform: uppercase;
@@ -496,9 +502,9 @@ class GerlCraftZehnderCard extends HTMLElement {
         }
 
         .air-node ha-icon { width: 29px; color: var(--secondary-text-color); }
-        .air-node .node-label { color: var(--secondary-text-color); font-size: 11px; }
-        .air-node .node-value { font-size: 20px; font-weight: 650; white-space: nowrap; }
-        .air-node .unit { color: var(--secondary-text-color); font-size: 10px; }
+        .air-node .node-label { color: var(--secondary-text-color); font-size: 13px; }
+        .air-node .node-value { font-size: 24px; font-weight: 650; white-space: nowrap; }
+        .air-node .unit { color: var(--secondary-text-color); font-size: 11px; }
         .outdoor { grid-area: outdoor; }
         .supply { grid-area: supply; }
         .extract { grid-area: extract; }
@@ -584,8 +590,8 @@ class GerlCraftZehnderCard extends HTMLElement {
         .exchanger::after { transform: rotate(-45deg); }
         .exchanger ha-icon { z-index: 1; width: 38px; }
         .connected .exchanger ha-icon { animation: fan-spin var(--fan-duration) linear infinite; }
-        .unit-name { font-size: 11px; font-weight: 650; }
-        .unit-mode { color: var(--secondary-text-color); font-size: 10px; text-align: center; }
+        .unit-name { font-size: 13px; font-weight: 650; }
+        .unit-mode { color: var(--secondary-text-color); font-size: 11px; text-align: center; }
         .free-cooling .unit-mode { color: var(--info-color); }
 
         .bypass-track {
@@ -609,13 +615,16 @@ class GerlCraftZehnderCard extends HTMLElement {
           transition: transform 0.5s ease;
         }
 
-        .bypass-label { color: var(--secondary-text-color); font-size: 9px; }
+        .bypass-label { color: var(--secondary-text-color); font-size: 10px; }
 
         .operation {
           display: grid;
           grid-template-rows: auto 1fr;
+          align-self: center;
           align-content: stretch;
           gap: 18px;
+          width: 100%;
+          height: clamp(480px, 54dvh, 580px);
           min-width: 0;
         }
 
@@ -636,8 +645,8 @@ class GerlCraftZehnderCard extends HTMLElement {
           background: var(--ha-card-background, var(--card-background-color));
         }
 
-        .mode-value span { color: var(--secondary-text-color); font-size: 10px; }
-        .mode-value strong { font-size: 21px; font-weight: 650; }
+        .mode-value span { color: var(--secondary-text-color); font-size: 12px; }
+        .mode-value strong { font-size: 24px; font-weight: 650; }
 
         .metric-grid {
           display: grid;
@@ -664,10 +673,10 @@ class GerlCraftZehnderCard extends HTMLElement {
 
         .metric:nth-child(even) { border-right: 0; }
         .metric:hover { background: color-mix(in srgb, var(--primary-text-color) 4%, transparent); }
-        .metric ha-icon { grid-area: icon; width: 22px; color: var(--secondary-text-color); }
-        .metric-label { grid-area: label; color: var(--secondary-text-color); font-size: 10px; }
-        .metric-reading { grid-area: value; font-size: 17px; font-weight: 650; white-space: nowrap; }
-        .metric-reading small { margin-left: 3px; color: var(--secondary-text-color); font-size: 9px; font-weight: 500; }
+        .metric ha-icon { grid-area: icon; width: 24px; color: var(--secondary-text-color); }
+        .metric-label { grid-area: label; color: var(--secondary-text-color); font-size: 12px; }
+        .metric-reading { grid-area: value; font-size: 20px; font-weight: 650; white-space: nowrap; }
+        .metric-reading small { margin-left: 3px; color: var(--secondary-text-color); font-size: 10px; font-weight: 500; }
         .metric.unavailable .metric-reading { color: var(--disabled-text-color); }
         .metric.unavailable small { display: none; }
 
@@ -695,17 +704,17 @@ class GerlCraftZehnderCard extends HTMLElement {
           align-items: center;
           gap: 8px;
           color: var(--secondary-text-color);
-          font-size: 11px;
+          font-size: 13px;
           font-weight: 650;
         }
 
         .footer-title ha-icon { width: 19px; }
         .footer-values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
         .footer-value { display: grid; gap: 3px; min-width: 0; cursor: pointer; }
-        .footer-value span { color: var(--secondary-text-color); font-size: 9px; }
-        .footer-value strong { overflow: hidden; font-size: 16px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
-        .footer-value strong small { margin-left: 3px; color: var(--secondary-text-color); font-size: 9px; font-weight: 500; }
-        .metric-hint { color: var(--secondary-text-color); font-size: 9px; }
+        .footer-value span { color: var(--secondary-text-color); font-size: 11px; }
+        .footer-value strong { overflow: hidden; font-size: 18px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+        .footer-value strong small { margin-left: 3px; color: var(--secondary-text-color); font-size: 10px; font-weight: 500; }
+        .metric-hint { color: var(--secondary-text-color); font-size: 10px; }
         .footer-value.unavailable strong { color: var(--disabled-text-color); }
         .footer-value.unavailable strong small { display: none; }
 
@@ -724,6 +733,7 @@ class GerlCraftZehnderCard extends HTMLElement {
         @media (max-width: 900px) {
           ha-card { width: 100%; margin: 0; }
           .overview { grid-template-columns: 1fr; }
+          .overview > section, .operation { height: auto; }
           .footer-grid { grid-template-columns: 1fr; }
         }
 
