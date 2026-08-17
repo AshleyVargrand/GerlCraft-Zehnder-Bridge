@@ -67,8 +67,9 @@ vollstaendig erhalten.
 - CAN-H und CAN-L nicht vertauschen.
 - Keinen zusaetzlichen 120-Ohm-Abschlusswiderstand an einer Stichleitung
   montieren.
-- Die Firmware sendet PDO-Leseanfragen, aber keine Steuerbefehle fuer
-  Luefterstufe, Bypass oder Betriebsart.
+- Die Firmware sendet PDO-Leseanfragen. Ab v1.1.0 ist zusaetzlich nur der
+  zeitlich begrenzte 60-Minuten-Boost samt vorzeitigem Beenden freigegeben.
+  Beliebige CAN-/RMI-Befehle bleiben gesperrt.
 - Anschlussbelegung und Kabelfarben immer an der eigenen Anlage pruefen.
 
 ## 1. Software installieren
@@ -391,4 +392,3 @@ Nach dem Neustart startet wieder das WLAN `Zehnder-Bridge-Setup`.
 | Diagnose-JSON | `/diagnostics.json` |
 | Status-API | `/api/status` |
 | Zehnder-API | `/api/zehnder` |
-

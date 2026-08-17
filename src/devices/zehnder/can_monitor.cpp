@@ -1,5 +1,6 @@
 #include "devices/zehnder/can_monitor.h"
 #include "devices/zehnder/zehnder_decoder.h"
+#include <cstring>
 #include <driver/twai.h>
 #include <esp_err.h>
 
@@ -16,6 +17,24 @@ namespace
 
     // Eigene Teilnehmeradresse für PDO-Leseanfragen
     constexpr uint8_t LOCAL_NODE_ID = 0x3E;
+
+    // Die Q350 meldet sich im getesteten Aufbau als RMI-Ziel 0x01.
+    constexpr uint8_t VENTILATION_UNIT_NODE_ID = 0x01;
+
+    constexpr uint32_t RMI_IDENTIFIER_PREFIX = 0x1F000000U;
+    constexpr uint8_t RMI_SEQUENCE_MASK = 0x03;
+    constexpr size_t RMI_FRAGMENT_DATA_SIZE = 7;
+
+    constexpr uint8_t BOOST_60_MINUTES_COMMAND[] = {
+        0x84, 0x15, 0x01, 0x06,
+        0x00, 0x00, 0x00, 0x00,
+        0x10, 0x0E, 0x00, 0x00,
+        0x03, 0x00, 0x00, 0x00
+    };
+
+    constexpr uint8_t BOOST_END_COMMAND[] = {
+        0x85, 0x15, 0x01, 0x06
+    };
 
     constexpr uint32_t PDO_FAILURE_WARNING_MIN_REQUESTS = 100;
     constexpr uint32_t PDO_FAILURE_WARNING_PERCENT = 1;
@@ -75,6 +94,150 @@ namespace
 
     uint64_t receivedFrameCount = 0;
     uint32_t lastFrameTimestamp = 0;
+    uint8_t rmiSequence = 0;
+
+    uint32_t createRmiIdentifier(
+        const bool multiMessage,
+        const uint8_t sequence
+    )
+    {
+        uint32_t identifier = RMI_IDENTIFIER_PREFIX;
+
+        identifier |= LOCAL_NODE_ID;
+        identifier |=
+            static_cast<uint32_t>(VENTILATION_UNIT_NODE_ID)
+            << 6;
+        identifier |= 1U << 16; // RMI-Anfrage
+        identifier |=
+            static_cast<uint32_t>(sequence & RMI_SEQUENCE_MASK)
+            << 17;
+
+        if (multiMessage)
+        {
+            identifier |= 1U << 14;
+        }
+
+        return identifier;
+    }
+
+    bool transmitRmiFrame(
+        const uint32_t identifier,
+        const uint8_t* data,
+        const uint8_t dataLength
+    )
+    {
+        twai_message_t frame {};
+
+        frame.identifier = identifier;
+        frame.extd = 1;
+        frame.rtr = 0;
+        frame.data_length_code = dataLength;
+
+        if (dataLength > 0)
+        {
+            memcpy(frame.data, data, dataLength);
+        }
+
+        const esp_err_t result = twai_transmit(
+            &frame,
+            pdMS_TO_TICKS(50)
+        );
+
+        if (result == ESP_OK)
+        {
+            return true;
+        }
+
+        Serial.printf(
+            "RMI-Frame konnte nicht gesendet werden: %s\n",
+            esp_err_to_name(result)
+        );
+
+        return false;
+    }
+
+    bool sendRmiCommand(
+        const uint8_t* command,
+        const size_t commandLength
+    )
+    {
+        if (!driverRunning)
+        {
+            Serial.println(
+                "RMI-Befehl abgelehnt: CAN-Treiber laeuft nicht"
+            );
+            return false;
+        }
+
+        if (
+            command == nullptr
+            || commandLength == 0
+        )
+        {
+            return false;
+        }
+
+        rmiSequence =
+            (rmiSequence + 1) & RMI_SEQUENCE_MASK;
+
+        const bool multiMessage = commandLength > 8;
+        const uint32_t identifier = createRmiIdentifier(
+            multiMessage,
+            rmiSequence
+        );
+
+        if (!multiMessage)
+        {
+            return transmitRmiFrame(
+                identifier,
+                command,
+                static_cast<uint8_t>(commandLength)
+            );
+        }
+
+        size_t offset = 0;
+        uint8_t fragmentIndex = 0;
+
+        while (offset < commandLength)
+        {
+            const size_t remaining = commandLength - offset;
+            const size_t fragmentLength =
+                remaining < RMI_FRAGMENT_DATA_SIZE
+                    ? remaining
+                    : RMI_FRAGMENT_DATA_SIZE;
+
+            const bool lastFragment =
+                offset + fragmentLength >= commandLength;
+
+            uint8_t payload[8] {};
+            payload[0] = fragmentIndex;
+
+            if (lastFragment)
+            {
+                payload[0] |= 0x80;
+            }
+
+            memcpy(
+                &payload[1],
+                &command[offset],
+                fragmentLength
+            );
+
+            if (!transmitRmiFrame(
+                identifier,
+                payload,
+                static_cast<uint8_t>(fragmentLength + 1)
+            ))
+            {
+                return false;
+            }
+
+            offset += fragmentLength;
+            fragmentIndex++;
+        }
+
+        return true;
+    }
 
     String uint64ToString(const uint64_t value)
     {
@@ -344,6 +507,26 @@ namespace CanMonitor
         );
 
         return true;
+    }
+
+    bool startBoost60Minutes()
+    {
+        Serial.println("Zehnder Boost 60 Minuten wird gestartet");
+
+        return sendRmiCommand(
+            BOOST_60_MINUTES_COMMAND,
+            sizeof(BOOST_60_MINUTES_COMMAND)
+        );
+    }
+
+    bool stopBoost()
+    {
+        Serial.println("Zehnder Boost wird beendet");
+
+        return sendRmiCommand(
+            BOOST_END_COMMAND,
+            sizeof(BOOST_END_COMMAND)
+        );
     }
 
     uint32_t getPdoRequestsSent()

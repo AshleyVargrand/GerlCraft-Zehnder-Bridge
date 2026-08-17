@@ -10,6 +10,8 @@ namespace ActiveDevice
     void begin();
     void update();
 
+    bool setBoost(bool active);
+
     bool isOnline();
     String getStatusText();
 

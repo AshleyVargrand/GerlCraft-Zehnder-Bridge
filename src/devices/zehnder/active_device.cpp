@@ -69,6 +69,21 @@ namespace ActiveDevice
         ZehnderPoller::update();
     }
 
+    bool setBoost(const bool active)
+    {
+        if (!ZehnderDecoder::isOnline())
+        {
+            Serial.println(
+                "Boost-Befehl abgelehnt: Zehnder ist nicht online"
+            );
+            return false;
+        }
+
+        return active
+            ? CanMonitor::startBoost60Minutes()
+            : CanMonitor::stopBoost();
+    }
+
     bool isOnline()
     {
         return ZehnderDecoder::isOnline();

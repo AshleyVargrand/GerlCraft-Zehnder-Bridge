@@ -9,6 +9,9 @@ namespace CanMonitor
 
     bool requestPdo(uint16_t pdoId);
 
+    bool startBoost60Minutes();
+    bool stopBoost();
+
     bool isDriverRunning();
     bool isBusActive();
 

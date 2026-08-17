@@ -54,7 +54,7 @@ namespace AppConfig
      * MQTT- und Home-Assistant-Entitäten nicht doppelt angelegt werden.
      */
     constexpr char PROJECT_ID[] = "gerlcraft-hvac-bridge";
-    constexpr char FIRMWARE_VERSION[] = "1.0.0";
+    constexpr char FIRMWARE_VERSION[] = "1.1.0";
     constexpr char BOARD_NAME[] = "M5Stack AtomS3 Lite";
 
 #if defined(DEVICE_PROFILE_ZEHNDER)
@@ -92,6 +92,9 @@ namespace AppConfig
 
     constexpr char MQTT_AVAILABILITY_TOPIC[] =
         "gerlcraft-hvac-bridge/zehnder/availability";
+
+    constexpr char MQTT_BOOST_COMMAND_TOPIC[] =
+        "gerlcraft-hvac-bridge/zehnder/boost/set";
 
     constexpr char MQTT_DISCOVERY_TOPIC[] =
         "homeassistant/device/"

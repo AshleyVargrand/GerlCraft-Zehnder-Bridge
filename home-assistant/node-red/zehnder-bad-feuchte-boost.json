@@ -1,0 +1,161 @@
+[
+  {
+    "id": "zehnder_bad_boost_tab",
+    "type": "tab",
+    "label": "Zehnder Bad-Boost",
+    "disabled": true,
+    "info": "Automatischer 60-Minuten-Boost bei schnellem Feuchteanstieg im Badezimmer. Vor dem Aktivieren den Home-Assistant-Server in den drei HA-Nodes auswählen und die Boost-Entity prüfen.",
+    "env": []
+  },
+  {
+    "id": "zehnder_bad_humidity",
+    "type": "server-state-changed",
+    "z": "zehnder_bad_boost_tab",
+    "name": "Shelly Bad Luftfeuchtigkeit",
+    "server": "",
+    "version": 6,
+    "outputs": 1,
+    "exposeAsEntityConfig": "",
+    "entities": {
+      "entity": [
+        "sensor.shelly_blu_h_t_zb_luftfeuchtigkeit"
+      ],
+      "substring": [],
+      "regex": []
+    },
+    "outputInitially": true,
+    "stateType": "num",
+    "ifState": "",
+    "ifStateType": "str",
+    "ifStateOperator": "is",
+    "outputOnlyOnStateChange": true,
+    "for": "0",
+    "forType": "num",
+    "forUnits": "minutes",
+    "ignorePrevStateNull": false,
+    "ignorePrevStateUnknown": true,
+    "ignorePrevStateUnavailable": true,
+    "ignoreCurrentStateUnknown": true,
+    "ignoreCurrentStateUnavailable": true,
+    "outputProperties": [
+      {
+        "property": "payload",
+        "propertyType": "msg",
+        "value": "",
+        "valueType": "entityState"
+      },
+      {
+        "property": "topic",
+        "propertyType": "msg",
+        "value": "sensor.shelly_blu_h_t_zb_luftfeuchtigkeit",
+        "valueType": "str"
+      }
+    ],
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "zehnder_bad_logic"
+      ]
+    ]
+  },
+  {
+    "id": "zehnder_bad_logic",
+    "type": "function",
+    "z": "zehnder_bad_boost_tab",
+    "name": "Dusche erkennen und Boost regeln",
+    "func": "const riseWindowMs = 5 * 60 * 1000;\nconst riseThreshold = 7;\nconst absoluteThreshold = 72;\nconst minimumBoostMs = 30 * 60 * 1000;\nconst maximumBoostMs = 60 * 60 * 1000;\nconst dryMargin = 3;\nconst maximumDryTarget = 65;\nconst cooldownMs = 10 * 60 * 1000;\n\nconst now = Date.now();\nconst humidity = Number(msg.payload);\n\nif (!Number.isFinite(humidity) || humidity < 0 || humidity > 100) {\n    node.status({ fill: 'red', shape: 'ring', text: 'Ungültiger Feuchtewert' });\n    return null;\n}\n\nlet samples = context.get('samples') || [];\nsamples.push({ time: now, value: humidity });\nsamples = samples.filter(sample => now - sample.time <= riseWindowMs);\ncontext.set('samples', samples);\n\nlet boostActive = context.get('boostActive') === true;\nlet boostStartedAt = Number(context.get('boostStartedAt')) || 0;\nlet baseline = Number(context.get('baseline'));\nlet lastStoppedAt = Number(context.get('lastStoppedAt')) || 0;\n\nconst recentMinimum = Math.min(...samples.map(sample => sample.value));\nconst rise = humidity - recentMinimum;\n\nif (!boostActive) {\n    const cooldownActive = lastStoppedAt > 0 && now - lastStoppedAt < cooldownMs;\n    const shouldStart = !cooldownActive && (rise >= riseThreshold || humidity >= absoluteThreshold);\n\n    if (!shouldStart) {\n        const text = cooldownActive\n            ? `Pause · ${humidity.toFixed(1)} %`\n            : `${humidity.toFixed(1)} % · Anstieg ${rise.toFixed(1)} %`;\n        node.status({ fill: 'green', shape: 'dot', text });\n        return null;\n    }\n\n    baseline = recentMinimum;\n    boostActive = true;\n    boostStartedAt = now;\n\n    context.set('baseline', baseline);\n    context.set('boostActive', true);\n    context.set('boostStartedAt', boostStartedAt);\n\n    node.status({\n        fill: 'yellow',\n        shape: 'dot',\n        text: `Boost gestartet · ${humidity.toFixed(1)} %`\n    });\n\n    return [\n        {\n            payload: humidity,\n            baseline,\n            reason: rise >= riseThreshold ? 'Feuchteanstieg' : 'Absolutgrenze'\n        },\n        null\n    ];\n}\n\nconst elapsed = now - boostStartedAt;\nconst dryTarget = Math.min(baseline + dryMargin, maximumDryTarget);\nconst dryEnough = humidity <= dryTarget;\nconst minimumReached = elapsed >= minimumBoostMs;\nconst maximumReached = elapsed >= maximumBoostMs;\n\nnode.status({\n    fill: 'yellow',\n    shape: 'dot',\n    text: `Boost ${Math.floor(elapsed / 60000)} min · ${humidity.toFixed(1)} %`\n});\n\nif (!maximumReached && !(minimumReached && dryEnough)) {\n    return null;\n}\n\ncontext.set('boostActive', false);\ncontext.set('boostStartedAt', 0);\ncontext.set('lastStoppedAt', now);\ncontext.set('samples', [{ time: now, value: humidity }]);\n\nnode.status({\n    fill: 'blue',\n    shape: 'ring',\n    text: maximumReached ? 'Boost-Zeit abgelaufen' : 'Bad wieder trocken'\n});\n\nreturn [\n    null,\n    {\n        payload: humidity,\n        baseline,\n        reason: maximumReached ? 'Maximallaufzeit' : 'Feuchte abgebaut'\n    }\n];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 490,
+    "y": 140,
+    "wires": [
+      [
+        "zehnder_boost_on"
+      ],
+      [
+        "zehnder_boost_off"
+      ]
+    ],
+    "outputLabels": [
+      "Boost starten",
+      "Boost beenden"
+    ]
+  },
+  {
+    "id": "zehnder_boost_on",
+    "type": "api-call-service",
+    "z": "zehnder_bad_boost_tab",
+    "name": "Zehnder Boost EIN",
+    "server": "",
+    "version": 7,
+    "debugenabled": false,
+    "action": "switch.turn_on",
+    "floorId": [],
+    "areaId": [],
+    "deviceId": [],
+    "entityId": [
+      "switch.zehnder_comfoair_q350_boost"
+    ],
+    "labelId": [],
+    "data": "{}",
+    "dataType": "json",
+    "mergeContext": "",
+    "mustacheAltTags": false,
+    "outputProperties": [],
+    "queue": "none",
+    "blockInputOverrides": true,
+    "domain": "switch",
+    "service": "turn_on",
+    "x": 800,
+    "y": 110,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "zehnder_boost_off",
+    "type": "api-call-service",
+    "z": "zehnder_bad_boost_tab",
+    "name": "Zehnder Boost AUS",
+    "server": "",
+    "version": 7,
+    "debugenabled": false,
+    "action": "switch.turn_off",
+    "floorId": [],
+    "areaId": [],
+    "deviceId": [],
+    "entityId": [
+      "switch.zehnder_comfoair_q350_boost"
+    ],
+    "labelId": [],
+    "data": "{}",
+    "dataType": "json",
+    "mergeContext": "",
+    "mustacheAltTags": false,
+    "outputProperties": [],
+    "queue": "none",
+    "blockInputOverrides": true,
+    "domain": "switch",
+    "service": "turn_off",
+    "x": 800,
+    "y": 170,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "zehnder_bad_note",
+    "type": "comment",
+    "z": "zehnder_bad_boost_tab",
+    "name": "Vor Aktivierung: HA-Server auswählen und Boost-Entity prüfen",
+    "info": "Der Flow ist beim Import absichtlich deaktiviert. In allen Home-Assistant-Nodes zuerst den eigenen HA-Server auswählen. Falls Home Assistant eine abweichende Entity-ID erzeugt, diese in beiden Aktions-Nodes ersetzen. Danach den Flow aktivieren und bereitstellen.",
+    "x": 370,
+    "y": 60,
+    "wires": []
+  }
+]

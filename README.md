@@ -6,10 +6,11 @@ M5Stack AtomS3 Lite mit Atomic CAN Base, liest Betriebs-, Klima-, Energie- und
 Diagnosewerte ueber ComfoNet/CAN und stellt sie per Weboberflaeche, JSON-API
 und MQTT Discovery bereit.
 
-Version 1.0.0 bietet einen Browser-Installer, ein Setup-WLAN, eine geschuetzte
+Version 1.1.0 bietet einen Browser-Installer, ein Setup-WLAN, eine geschuetzte
 Web-Konfiguration, OTA-Updates sowie ein fertiges Home-Assistant-Paket mit
-eigener responsiver Anlagenkarte. Die Bridge sendet PDO-Leseanfragen, aber
-keine Steuerbefehle fuer Luefterstufe, Bypass oder Betriebsart.
+eigener responsiver Anlagenkarte. Zusaetzlich kann ein zeitlich begrenzter
+60-Minuten-Boost ueber MQTT und Home Assistant gestartet oder vorzeitig
+beendet werden. Andere Steuerbefehle bleiben gesperrt.
 
 ## Installation
 
@@ -33,7 +34,7 @@ Kurzablauf:
 7. Bridge neu starten und erst danach spannungsfrei mit dem ComfoNet
    verbinden.
 
-## Funktionsumfang von v1.0.0
+## Funktionsumfang von v1.1.0
 
 - Getestet mit Zehnder ComfoAir Q350
 - CAN-Kommunikation mit M5Stack AtomS3 Lite und Atomic CAN Base
@@ -49,6 +50,8 @@ Kurzablauf:
 - PDO-Fehlerquote, letzter CAN-Sendefehler und Neustartgrund
 - einstellbare Aktualisierung der Webansichten
 - fertige Home-Assistant-Dashboards und responsive Custom Card
+- Home-Assistant-Schalter fuer einen sicheren 60-Minuten-Boost
+- MQTT-Booststeuerung mit fester Befehls-Whitelist
 
 Q450 und Q600 sind noch nicht als verifiziert markiert.
 
@@ -193,8 +196,10 @@ Die Bridge erzeugt zusaetzlich folgende Werte:
 - Filterstatus
 - Bridge-Gesundheit
 
-Alle Kennzahlen werden ausschliesslich aus gelesenen Daten berechnet.
-Die Firmware sendet weiterhin keine Steuerbefehle an die Zehnder.
+Alle Kennzahlen werden ausschliesslich aus gelesenen Daten berechnet. Als
+einziger schreibender Anlagenzugriff ist der zeitbegrenzte Boost freigegeben.
+Beliebige CAN- oder RMI-Kommandos koennen weder ueber MQTT noch ueber die
+Weboberflaeche gesendet werden.
 
 ## Lizenz und Quellen
 

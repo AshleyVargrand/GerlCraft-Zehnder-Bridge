@@ -1,9 +1,11 @@
 # Home-Assistant-Dashboard
 
 Dieses Paket enthaelt fertige Dashboards und einzelne Ansichten fuer die
-Zehnder ComfoAir Bridge. Alle Varianten sind reine Anzeigen. Sie senden keine
-Befehle an die Lueftungsanlage. Fuer ein bestehendes Dashboard wird die
-responsive GerlCraft Zehnder Card empfohlen: Sie bildet die Anlage als
+Zehnder ComfoAir Bridge. Die Dashboard-Varianten und die Custom Card sind
+reine Anzeigen. Ab Firmware v1.1.0 wird der separate Boost-Schalter ueber
+MQTT Discovery angelegt; fuer die Feuchteregelung ist zusaetzlich ein
+Node-RED-Flow enthalten. Fuer ein bestehendes Dashboard wird die responsive
+GerlCraft Zehnder Card empfohlen: Sie bildet die Anlage als
 zusammenhaengende Ansicht ab, erkennt den Entity-Praefix automatisch und
 benoetigt keine weitere HACS-Karte.
 
@@ -23,6 +25,35 @@ Die vollstaendige Einrichtung steht in
 Seite fuer ein bestehendes Dashboard liegt in `view-custom-card.yaml`.
 
 ![Vorschau der GerlCraft Zehnder Card](custom-card/gerlcraft-zehnder-card-preview.png)
+
+### `node-red/zehnder-bad-feuchte-boost.json`
+
+- importierbarer Node-RED-Flow fuer den automatischen Bad-Boost
+- verwendet standardmaessig den Shelly-Sensor
+  `sensor.shelly_blu_h_t_zb_luftfeuchtigkeit`
+- startet bei schnellem Feuchteanstieg oder einer hohen Absolutfeuchte
+- ist beim Import absichtlich deaktiviert
+
+Ab Firmware v1.1.0 stellt MQTT Discovery dafuer den Home-Assistant-Schalter
+`Boost` bereit. Er startet in der Q350 einen auf 60 Minuten begrenzten Boost
+und kann ihn vorzeitig beenden. Dadurch endet die hohe Luefterstufe auch dann
+automatisch, wenn Home Assistant oder Node-RED ausfallen.
+
+Vor dem Aktivieren des Flows:
+
+1. In den drei Home-Assistant-Nodes den eigenen HA-Server auswaehlen.
+2. Pruefen, ob der Schalter als
+   `switch.zehnder_comfoair_q350_boost` angelegt wurde, und die Entity-ID bei
+   Bedarf in beiden Aktions-Nodes anpassen.
+3. Den Boost-Schalter einmal manuell ein- und ausschalten und die Reaktion der
+   Q350 kontrollieren.
+4. Erst danach den Flow aktivieren und bereitstellen.
+
+Die Standardregel startet bei einem Anstieg um mindestens 7 Prozentpunkte
+innerhalb von 5 Minuten oder ab 72 Prozent relativer Feuchte. Sie laeuft
+mindestens 30 Minuten und beendet den Boost erst, wenn das Bad wieder nahe am
+Ausgangswert liegt. Nach 60 Minuten beendet die Q350 ihren Timer unabhaengig
+von Node-RED.
 
 ### `dashboard-native.yaml`
 

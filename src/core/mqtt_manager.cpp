@@ -27,6 +27,7 @@ namespace
 
     volatile bool connectionEventPending = false;
     volatile bool homeAssistantBirthPending = false;
+    volatile uint8_t pendingBoostCommand = 0;
 
     bool discoveryPublishPending = false;
     uint32_t discoveryPublishNotBeforeAt = 0;
@@ -36,6 +37,11 @@ namespace
 
     uint32_t lastStatePublishedAt = 0;
     uint32_t publishCount = 0;
+
+    void queueBoostCommand(const bool active)
+    {
+        pendingBoostCommand = active ? 1 : 2;
+    }
 
     void markConnected()
     {
@@ -126,6 +132,38 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
             {
                 homeAssistantBirthPending = true;
             }
+        },
+        0
+    );
+
+    mqttClient.subscribe(
+        AppConfig::MQTT_BOOST_COMMAND_TOPIC,
+        [](const std::string& payload)
+        {
+            if (
+                payload == "ON"
+                || payload == "on"
+                || payload == "boost_60_min"
+            )
+            {
+                queueBoostCommand(true);
+                return;
+            }
+
+            if (
+                payload == "OFF"
+                || payload == "off"
+                || payload == "boost_end"
+            )
+            {
+                queueBoostCommand(false);
+                return;
+            }
+
+            Serial.printf(
+                "Unbekannter Boost-Befehl ignoriert: %s\n",
+                payload.c_str()
+            );
         },
         0
     );
@@ -303,6 +341,27 @@ namespace MqttManager
         }
 
         const uint32_t currentTime = millis();
+
+        if (pendingBoostCommand != 0)
+        {
+            const uint8_t command = pendingBoostCommand;
+            pendingBoostCommand = 0;
+
+            const bool success = ActiveDevice::setBoost(
+                command == 1
+            );
+
+            Serial.printf(
+                "MQTT Boost-Befehl %s: %s\n",
+                command == 1 ? "START" : "ENDE",
+                success ? "gesendet" : "fehlgeschlagen"
+            );
+
+            if (success)
+            {
+                lastStatePublishedAt = 0;
+            }
+        }
 
         if (
             discoveryPublishPending

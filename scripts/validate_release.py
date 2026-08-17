@@ -43,6 +43,12 @@ def main():
             / "gerlcraft-zehnder-card.js"
         ),
         RELEASE_DIR / "home-assistant" / "custom-card" / "INSTALLATION.md",
+        (
+            RELEASE_DIR
+            / "home-assistant"
+            / "node-red"
+            / "zehnder-bad-feuchte-boost.json"
+        ),
     ):
         if not required_path.is_file():
             errors.append(f"Datei fehlt: {required_path}")
@@ -109,6 +115,7 @@ def main():
                 "home-assistant/view-custom-card.yaml",
                 "home-assistant/custom-card/gerlcraft-zehnder-card.js",
                 "home-assistant/custom-card/INSTALLATION.md",
+                "home-assistant/node-red/zehnder-bad-feuchte-boost.json",
             ):
                 if required_name not in names:
                     errors.append(f"Fehlt im Release-ZIP: {required_name}")
@@ -135,6 +142,7 @@ def main():
                 "view-custom-card.yaml",
                 "custom-card/gerlcraft-zehnder-card.js",
                 "custom-card/INSTALLATION.md",
+                "node-red/zehnder-bad-feuchte-boost.json",
             ):
                 if required_name not in names:
                     errors.append(

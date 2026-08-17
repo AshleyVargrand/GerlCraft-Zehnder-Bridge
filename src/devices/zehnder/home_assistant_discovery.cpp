@@ -94,6 +94,33 @@ namespace
 
         json += "}";
     }
+
+    void appendBoostSwitch(
+        String& json,
+        bool& firstComponent
+    )
+    {
+        if (!firstComponent)
+        {
+            json += ",";
+        }
+
+        firstComponent = false;
+
+        json += "\"boost\":{";
+        json += "\"platform\":\"switch\",";
+        json += "\"unique_id\":\"gerlcraft_zehnder_boost\",";
+        json += "\"name\":\"Boost\",";
+        json += "\"icon\":\"mdi:fan-clock\",";
+        json += "\"command_topic\":\"";
+        json += AppConfig::MQTT_BOOST_COMMAND_TOPIC;
+        json += "\",";
+        json += "\"payload_on\":\"ON\",";
+        json += "\"payload_off\":\"OFF\",";
+        json += "\"value_template\":";
+        json += "\"{{ 'ON' if value_json.operating_mode == 6 else 'OFF' }}\"";
+        json += "}";
+    }
 }
 
 namespace ZehnderHomeAssistantDiscovery
@@ -221,6 +248,11 @@ namespace ZehnderHomeAssistantDiscovery
             nullptr,
             nullptr,
             "mdi:fan"
+        );
+
+        appendBoostSwitch(
+            json,
+            first
         );
 
         appendComponent(
