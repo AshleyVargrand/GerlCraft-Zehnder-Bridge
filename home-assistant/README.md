@@ -1,10 +1,12 @@
 # Home-Assistant-Dashboard
 
 Dieses Paket enthaelt fertige Dashboards und einzelne Ansichten fuer die
-Zehnder ComfoAir Bridge. Die Dashboard-Varianten und die Custom Card sind
-reine Anzeigen. Ab Firmware v1.1.0 wird der separate Boost-Schalter ueber
-MQTT Discovery angelegt; fuer die Feuchteregelung ist zusaetzlich ein
-Node-RED-Flow enthalten. Fuer ein bestehendes Dashboard wird die responsive
+Zehnder ComfoAir Bridge. Die nativen Dashboard-Varianten sind reine Anzeigen.
+Ab Firmware v1.1.0 wird der Boost-Schalter ueber MQTT Discovery angelegt; die
+Custom Card kann ihn ab Version 1.0.11 direkt bedienen und erkennt ab Version
+1.0.12 beide gebraeuchlichen Entity-IDs automatisch. Fuer die
+Feuchteregelung ist zusaetzlich ein Node-RED-Flow enthalten. Fuer ein
+bestehendes Dashboard wird die responsive
 GerlCraft Zehnder Card empfohlen: Sie bildet die Anlage als
 zusammenhaengende Ansicht ab, erkennt den Entity-Praefix automatisch und
 benoetigt keine weitere HACS-Karte.
@@ -17,6 +19,7 @@ benoetigt keine weitere HACS-Karte.
 - animierte Luftstroeme, Ventilator und Bypass-Stellung
 - kompakte Darstellung fuer Desktop, Tablet und Smartphone
 - erkennt den Entity-Praefix automatisch
+- startet und beendet den 60-Minuten-Boost direkt unter der Bypass-Anzeige
 - zeigt nicht verfuegbare Messwerte ohne Fehlerkarte an
 - benoetigt keine weitere HACS-Karte
 

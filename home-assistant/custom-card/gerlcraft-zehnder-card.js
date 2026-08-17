@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.0.7";
+const CARD_VERSION = "1.0.13";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -14,6 +14,11 @@ const ENTITY_DEFINITIONS = {
     suffixes: ["freie_kuhlung_begrundung"],
   },
   bypass: { domain: "sensor", suffixes: ["bypass_offnung"] },
+  boost: {
+    domain: "switch",
+    suffixes: ["boost"],
+    fallbackEntityIds: ["switch.gerlcraft_zehnder_bridge_boost"],
+  },
   outdoorTemperature: {
     domain: "sensor",
     suffixes: ["aussenlufttemperatur"],
@@ -75,6 +80,9 @@ class GerlCraftZehnderCard extends HTMLElement {
     this._config = {};
     this._hass = undefined;
     this._prefix = DEFAULT_PREFIX;
+    this._boostPending = false;
+    this._boostTargetState = undefined;
+    this._boostPendingTimeout = undefined;
     this._renderShell();
     this.shadowRoot.addEventListener("click", (event) => this._handleClick(event));
   }
@@ -82,6 +90,7 @@ class GerlCraftZehnderCard extends HTMLElement {
   static getStubConfig() {
     return {
       title: "Zehnder ComfoAir Q",
+      humidity_warning_threshold: 65,
     };
   }
 
@@ -97,6 +106,18 @@ class GerlCraftZehnderCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     this._prefix = this._detectPrefix();
+
+    if (this._boostPending && this._boostTargetState !== undefined) {
+      const boostState = this._state("boost")?.state;
+      const targetReached = this._boostTargetState
+        ? boostState === "on"
+        : boostState === "off";
+
+      if (targetReached) {
+        this._clearBoostPending();
+      }
+    }
+
     this._update();
   }
 
@@ -137,6 +158,14 @@ class GerlCraftZehnderCard extends HTMLElement {
   }
 
   _entityId(key) {
+    if (key === "humidity" && this._config.humidity_entity) {
+      return String(this._config.humidity_entity);
+    }
+
+    if (key === "boost" && this._config.boost_entity) {
+      return String(this._config.boost_entity);
+    }
+
     const configured = this._config.entities?.[key];
 
     if (configured) {
@@ -152,6 +181,12 @@ class GerlCraftZehnderCard extends HTMLElement {
     for (const suffix of definition.suffixes) {
       const entityId = `${definition.domain}.${this._prefix}_${suffix}`;
 
+      if (this._hass?.states?.[entityId]) {
+        return entityId;
+      }
+    }
+
+    for (const entityId of definition.fallbackEntityIds || []) {
       if (this._hass?.states?.[entityId]) {
         return entityId;
       }
@@ -230,6 +265,26 @@ class GerlCraftZehnderCard extends HTMLElement {
     const freeCooling = this._state("freeCooling")?.state === "on";
     const bridgeHealth = this._value("bridgeHealth");
     const filterStatus = this._value("filterStatus");
+    const humidityEntityId = this._entityId("humidity");
+    const humidityState = humidityEntityId
+      ? this._hass.states[humidityEntityId]
+      : undefined;
+    const humidityConfigured = Boolean(humidityEntityId);
+    const humidityAvailable = this._isValid(humidityState);
+    const humidityValue = humidityAvailable
+      ? Number(humidityState.state)
+      : undefined;
+    const configuredHumidityThreshold = Number(
+      this._config.humidity_warning_threshold,
+    );
+    const humidityWarningThreshold = Number.isFinite(configuredHumidityThreshold)
+      ? Math.max(1, Math.min(100, configuredHumidityThreshold))
+      : 65;
+    const humidityHigh = Number.isFinite(humidityValue)
+      && humidityValue >= humidityWarningThreshold;
+    const boostState = this._state("boost");
+    const boostAvailable = this._isValid(boostState);
+    const boostActive = boostAvailable && boostState.state === "on";
     const bypass = this._rawNumber("bypass") || 0;
     const supplyFlow = this._rawNumber("supplyFlow") || 0;
     const extractFlow = this._rawNumber("extractFlow") || 0;
@@ -242,6 +297,7 @@ class GerlCraftZehnderCard extends HTMLElement {
     card.classList.toggle("connected", connected);
     card.classList.toggle("disconnected", !connected);
     card.classList.toggle("free-cooling", freeCooling);
+    card.classList.toggle("boost-active", boostActive);
     card.style.setProperty(
       "--flow-duration",
       `${Math.max(1.1, Math.min(3.8, 4.2 - averageFlow / 110)).toFixed(2)}s`,
@@ -257,6 +313,14 @@ class GerlCraftZehnderCard extends HTMLElement {
     this._setText("operating-mode", this._value("operatingMode"));
     this._setText("bridge-health", bridgeHealth);
     this._setText("filter-status", filterStatus);
+    this._setText(
+      "humidity",
+      !humidityConfigured
+        ? "Nicht eingerichtet"
+        : !humidityAvailable || !Number.isFinite(humidityValue)
+          ? "Offline"
+          : `${this._value("humidity")} %`,
+    );
     this._setText("free-cooling", "Freie Kühlung");
     this._setText("free-cooling-reason", this._value("freeCoolingReason"));
     this._setText("outdoor-temperature", this._value("outdoorTemperature", 1));
@@ -275,6 +339,7 @@ class GerlCraftZehnderCard extends HTMLElement {
     this._setMetric("recovered-heating-energy", "recoveredHeatingEnergy");
     this._setText("bypass", this._value("bypass"));
     this._setMetric("bypass-footer", "bypass");
+    this._updateBoostControl(connected, boostAvailable, boostActive);
 
     this._updateRecovery("heat-recovery", "heatRecovery");
     this._updateRecovery("cooling-recovery", "coolingRecovery");
@@ -286,6 +351,104 @@ class GerlCraftZehnderCard extends HTMLElement {
     const filterBadge = this.shadowRoot.getElementById("filter-badge");
     filterBadge.classList.toggle("ok", filterStatus === "OK");
     filterBadge.classList.toggle("alert", filterStatus !== "OK");
+
+    const humidityBadge = this.shadowRoot.getElementById("humidity-badge");
+    humidityBadge.classList.toggle("inactive", !humidityConfigured);
+    humidityBadge.classList.toggle(
+      "error",
+      humidityConfigured && (!humidityAvailable || !Number.isFinite(humidityValue)),
+    );
+    humidityBadge.classList.toggle("alert", humidityConfigured && humidityAvailable && humidityHigh);
+    humidityBadge.classList.toggle("ok", humidityConfigured && humidityAvailable && !humidityHigh);
+    humidityBadge.dataset.key = humidityConfigured ? "humidity" : "";
+  }
+
+  _updateBoostControl(connected, available, active) {
+    const button = this.shadowRoot.getElementById("boost-control");
+    const icon = this.shadowRoot.getElementById("boost-control-icon");
+
+    if (!button || !icon) {
+      return;
+    }
+
+    const ready = connected && available && !this._boostPending;
+    const label = this._boostPending
+      ? "Wird geschaltet …"
+      : !connected
+        ? "Nicht verbunden"
+        : !available
+          ? "Nicht verfügbar"
+          : active
+            ? "Boost beenden"
+            : "Boost starten";
+    const status = this._boostPending
+      ? "Befehl wird gesendet"
+      : !connected
+        ? "Bridge nicht verbunden"
+        : !available
+          ? "Boost-Schalter nicht verfügbar"
+          : active
+            ? "Party-Timer aktiv"
+            : "60-Minuten-Boost";
+
+    button.disabled = !ready;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    icon.setAttribute("icon", active ? "mdi:stop-circle-outline" : "mdi:fan-clock");
+    this._setText("boost-control-label", label);
+    this._setText("boost-control-status", status);
+  }
+
+  _clearBoostPending() {
+    if (this._boostPendingTimeout !== undefined) {
+      clearTimeout(this._boostPendingTimeout);
+    }
+
+    this._boostPending = false;
+    this._boostTargetState = undefined;
+    this._boostPendingTimeout = undefined;
+  }
+
+  async _toggleBoost() {
+    if (!this._hass || this._boostPending) {
+      return;
+    }
+
+    const entityId = this._entityId("boost");
+    const stateObject = entityId ? this._hass.states[entityId] : undefined;
+
+    if (!entityId || !this._isValid(stateObject)) {
+      return;
+    }
+
+    const active = stateObject.state === "on";
+    this._boostPending = true;
+    this._boostTargetState = !active;
+    this._update();
+
+    try {
+      await this._hass.callService(
+        "switch",
+        active ? "turn_off" : "turn_on",
+        { entity_id: entityId },
+      );
+
+      if (this._boostPending) {
+        this._boostPendingTimeout = setTimeout(() => {
+          this._clearBoostPending();
+          this._update();
+        }, 12000);
+      }
+    } catch (error) {
+      console.error(
+        "GerlCraft Zehnder Card: Boost konnte nicht geschaltet werden",
+        error,
+      );
+      this._clearBoostPending();
+      this._update();
+    }
   }
 
   _updateRecovery(id, key) {
@@ -309,6 +472,15 @@ class GerlCraftZehnderCard extends HTMLElement {
   }
 
   _handleClick(event) {
+    const actionTarget = event.target.closest("[data-action]");
+
+    if (actionTarget?.dataset.action === "toggle-boost") {
+      event.preventDefault();
+      event.stopPropagation();
+      this._toggleBoost();
+      return;
+    }
+
     const target = event.target.closest("[data-key]");
 
     if (!target || !this._hass) {
@@ -449,6 +621,8 @@ class GerlCraftZehnderCard extends HTMLElement {
         .disconnected #connection-badge { color: var(--error-color); }
         .badge.ok { color: var(--success-color); }
         .badge.alert { color: var(--warning-color); }
+        .badge.error { color: var(--error-color); }
+        .badge.inactive { color: var(--secondary-text-color); opacity: 0.72; }
 
         .overview {
           display: grid;
@@ -478,7 +652,7 @@ class GerlCraftZehnderCard extends HTMLElement {
 
         .airflow-stage {
           display: grid;
-          grid-template-columns: 112px minmax(42px, 1fr) 130px minmax(42px, 1fr) 112px;
+          grid-template-columns: 112px minmax(42px, 1fr) clamp(160px, 13vw, 210px) minmax(42px, 1fr) 112px;
           grid-template-areas:
             "outdoor intake unit supply-duct supply"
             "exhaust exhaust-duct unit extract-duct extract";
@@ -557,9 +731,9 @@ class GerlCraftZehnderCard extends HTMLElement {
           align-self: stretch;
           align-content: center;
           justify-items: center;
-          gap: 7px;
-          min-height: 236px;
-          padding: 18px 10px;
+          gap: 9px;
+          min-height: 244px;
+          padding: 22px 18px;
           border: 1px solid var(--divider-color);
           border-radius: 8px;
           background: color-mix(in srgb, var(--primary-text-color) 3%, transparent);
@@ -569,8 +743,8 @@ class GerlCraftZehnderCard extends HTMLElement {
           position: relative;
           display: grid;
           place-items: center;
-          width: 80px;
-          height: 80px;
+          width: 100px;
+          height: 100px;
           border: 1px solid color-mix(in srgb, var(--card-accent) 48%, transparent);
           border-radius: 8px;
           overflow: hidden;
@@ -581,7 +755,7 @@ class GerlCraftZehnderCard extends HTMLElement {
         .exchanger::after {
           content: "";
           position: absolute;
-          width: 110px;
+          width: 142px;
           height: 1px;
           background: color-mix(in srgb, var(--card-accent) 38%, transparent);
           transform: rotate(45deg);
@@ -593,45 +767,100 @@ class GerlCraftZehnderCard extends HTMLElement {
           z-index: 1;
           display: grid;
           place-items: center;
-          width: 32px;
-          height: 32px;
+          width: 40px;
+          height: 40px;
           line-height: 0;
-          transform-origin: 16px 16px;
+          transform-origin: 20px 20px;
           will-change: transform;
         }
         .exchanger-fan ha-icon {
           display: block;
-          width: 28px;
-          height: 28px;
-          --mdc-icon-size: 28px;
+          width: 36px;
+          height: 36px;
+          --mdc-icon-size: 36px;
         }
         .connected .exchanger-fan { animation: fan-spin var(--fan-duration) linear infinite; }
-        .unit-name { font-size: 13px; font-weight: 650; }
-        .unit-mode { color: var(--secondary-text-color); font-size: 11px; text-align: center; }
+        .unit-name { font-size: 16px; font-weight: 650; }
+        .unit-mode { color: var(--secondary-text-color); font-size: 12px; line-height: 1.4; text-align: center; }
         .free-cooling .unit-mode { color: var(--info-color); }
 
         .bypass-track {
           position: relative;
-          width: 74px;
-          height: 12px;
-          margin-top: 7px;
+          width: 112px;
+          height: 14px;
+          margin-top: 9px;
           border-top: 2px solid var(--warning-color);
           opacity: 0.8;
         }
 
         .bypass-gate {
           position: absolute;
-          top: -5px;
-          left: 34px;
+          top: -6px;
+          left: calc(50% - 1px);
           width: 2px;
-          height: 12px;
+          height: 14px;
           background: var(--warning-color);
           transform: rotate(var(--bypass-angle));
           transform-origin: bottom center;
           transition: transform 0.5s ease;
         }
 
-        .bypass-label { color: var(--secondary-text-color); font-size: 10px; }
+        .bypass-label { color: var(--secondary-text-color); font-size: 12px; }
+
+        .boost-control {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          width: min(174px, 100%);
+          min-height: 36px;
+          margin-top: 2px;
+          padding: 5px 10px;
+          border: 1px solid color-mix(in srgb, var(--card-accent) 48%, var(--divider-color));
+          border-radius: 6px;
+          color: var(--card-accent);
+          background: color-mix(in srgb, var(--card-accent) 9%, transparent);
+          font-size: 12px;
+          font-weight: 650;
+          cursor: pointer;
+          transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .boost-control:hover:not(:disabled) {
+          background: color-mix(in srgb, var(--card-accent) 16%, transparent);
+        }
+
+        .boost-control:focus-visible {
+          outline: 2px solid var(--card-accent);
+          outline-offset: 2px;
+        }
+
+        .boost-control:disabled {
+          color: var(--disabled-text-color);
+          border-color: var(--divider-color);
+          background: transparent;
+          cursor: default;
+          opacity: 0.72;
+        }
+
+        .boost-control.active {
+          color: var(--warning-color);
+          border-color: color-mix(in srgb, var(--warning-color) 62%, var(--divider-color));
+          background: color-mix(in srgb, var(--warning-color) 13%, transparent);
+        }
+
+        .boost-control ha-icon {
+          width: 18px;
+          height: 18px;
+          --mdc-icon-size: 18px;
+        }
+
+        .boost-control-status {
+          color: var(--secondary-text-color);
+          font-size: 10px;
+          line-height: 1.2;
+          text-align: center;
+        }
 
         .operation {
           display: grid;
@@ -758,7 +987,7 @@ class GerlCraftZehnderCard extends HTMLElement {
           .header { flex-direction: column; align-items: stretch; gap: 12px; }
           .badges {
             display: grid;
-            grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             width: 100%;
             gap: 6px;
           }
@@ -781,9 +1010,19 @@ class GerlCraftZehnderCard extends HTMLElement {
           .air-node .node-value { font-size: 14px; }
           .air-node .node-label { font-size: 9px; }
           .air-node .unit { display: none; }
-          .unit-core { min-height: 210px; padding: 12px 4px; }
+          .unit-core { gap: 7px; min-height: 210px; padding: 12px 4px; }
           .exchanger { width: 58px; height: 58px; }
+          .exchanger::before, .exchanger::after { width: 82px; }
+          .exchanger-fan { width: 28px; height: 28px; transform-origin: 14px 14px; }
+          .exchanger-fan ha-icon { width: 24px; height: 24px; --mdc-icon-size: 24px; }
           .unit-name { display: none; }
+          .unit-mode { font-size: 10px; }
+          .bypass-track { width: 64px; height: 12px; margin-top: 7px; }
+          .bypass-gate { top: -5px; left: 31px; height: 12px; }
+          .bypass-label { font-size: 9px; }
+          .boost-control { width: 62px; min-height: 28px; padding: 4px; }
+          .boost-control span { display: none; }
+          .boost-control-status { display: none; }
           .metric-grid { grid-template-columns: 1fr 1fr; }
           .metric { min-height: 72px; padding: 10px 7px; }
           .metric-reading { font-size: 15px; }
@@ -820,6 +1059,10 @@ class GerlCraftZehnderCard extends HTMLElement {
                 <ha-icon icon="mdi:air-filter"></ha-icon>
                 <span class="badge-copy"><span class="badge-label">Filter</span><strong class="badge-value" id="filter-status">–</strong></span>
               </span>
+              <span class="badge inactive" id="humidity-badge">
+                <ha-icon icon="mdi:water-percent"></ha-icon>
+                <span class="badge-copy"><span class="badge-label">Feuchte</span><strong class="badge-value" id="humidity">Nicht eingerichtet</strong></span>
+              </span>
             </div>
           </header>
 
@@ -840,6 +1083,11 @@ class GerlCraftZehnderCard extends HTMLElement {
                   <span class="unit-mode"><span id="free-cooling">–</span> · <span id="free-cooling-reason">–</span></span>
                   <div class="bypass-track"><i class="bypass-gate"></i></div>
                   <span class="bypass-label">Bypass <span id="bypass">–</span> %</span>
+                  <button class="boost-control" id="boost-control" data-action="toggle-boost" type="button" disabled>
+                    <ha-icon id="boost-control-icon" icon="mdi:fan-clock"></ha-icon>
+                    <span id="boost-control-label">Boost starten</span>
+                  </button>
+                  <span class="boost-control-status" id="boost-control-status">60-Minuten-Boost</span>
                 </div>
                 <div class="duct supply-duct"><span></span><span></span><span></span></div>
                 <div class="air-node supply" data-key="supplyTemperature">

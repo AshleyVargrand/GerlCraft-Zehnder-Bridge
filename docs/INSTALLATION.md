@@ -271,7 +271,8 @@ https://ashleyvargrand.github.io/GerlCraft-Zehnder-Bridge/
 Das Paket enthaelt:
 
 - `custom-card/gerlcraft-zehnder-card.js` als empfohlene responsive
-  Anlagenvisualisierung mit animierten Luftstroemen,
+  Anlagenvisualisierung mit animierten Luftstroemen und direkter
+  Boost-Steuerung,
 - `view-custom-card.yaml` als fertige vollbreite Seite fuer ein vorhandenes
   Dashboard,
 - `dashboard-native.yaml` ohne zusaetzliche Home-Assistant-Karten,

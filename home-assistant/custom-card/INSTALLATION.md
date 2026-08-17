@@ -1,9 +1,10 @@
 # GerlCraft Zehnder Card
 
 Die Karte zeigt die Zehnder ComfoAir Q als zusammenhaengende, animierte
-Anlagenansicht. Sie verwendet ausschliesslich die von der Bridge bereits per
-MQTT Discovery angelegten Home-Assistant-Entitaeten. Die Karte sendet keine
-Befehle an die Lueftungsanlage.
+Anlagenansicht. Sie verwendet die von der Bridge per MQTT Discovery angelegten
+Home-Assistant-Entitaeten. Ab Kartenversion 1.0.11 kann der auf 60 Minuten
+begrenzte Boost direkt unter der Bypass-Anzeige gestartet und vorzeitig beendet
+werden. Andere Anlagenfunktionen bleiben reine Anzeigen.
 
 ## Vorschau
 
@@ -18,7 +19,7 @@ Befehle an die Lueftungsanlage.
 3. Eine JavaScript-Modulressource hinzufuegen:
 
    ```text
-   /local/gerlcraft-zehnder-card.js?v=1.0.4
+   /local/gerlcraft-zehnder-card.js?v=1.0.13
    ```
 
 4. Das vorhandene Dashboard im Raw-Konfigurationseditor oeffnen.
@@ -39,6 +40,9 @@ der gewuenschte Praefix explizit gesetzt werden:
 type: custom:gerlcraft-zehnder-card
 title: Zehnder ComfoAir Q
 entity_prefix: zehnder_comfoair_q350
+humidity_entity: sensor.shelly_blu_h_t_zb_luftfeuchtigkeit
+humidity_warning_threshold: 65
+boost_entity: switch.gerlcraft_zehnder_bridge_boost
 ```
 
 Einzelne Entity-IDs koennen bei Bedarf ebenfalls ueberschrieben werden:
@@ -48,7 +52,13 @@ type: custom:gerlcraft-zehnder-card
 entities:
   supplyFlow: sensor.meine_zuluft
   extractFlow: sensor.meine_abluft
+  boost: switch.mein_zehnder_boost
 ```
+
+Ohne Ueberschreibung erkennt die Karte sowohl
+`switch.gerlcraft_zehnder_bridge_boost` als auch den praefixbasierten Namen
+`switch.zehnder_comfoair_q350_boost`. Der Schalter wird ab Bridge-Firmware
+1.1.0 per MQTT Discovery bereitgestellt.
 
 ## Aktualisierung
 
