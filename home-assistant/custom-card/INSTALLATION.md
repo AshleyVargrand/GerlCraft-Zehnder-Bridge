@@ -19,7 +19,7 @@ werden. Andere Anlagenfunktionen bleiben reine Anzeigen.
 3. Eine JavaScript-Modulressource hinzufuegen:
 
    ```text
-   /local/gerlcraft-zehnder-card.js?v=1.0.13
+   /local/gerlcraft-zehnder-card.js?v=1.0.14
    ```
 
 4. Das vorhandene Dashboard im Raw-Konfigurationseditor oeffnen.

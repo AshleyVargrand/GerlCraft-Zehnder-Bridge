@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.0.13";
+const CARD_VERSION = "1.0.14";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -767,21 +767,21 @@ class GerlCraftZehnderCard extends HTMLElement {
           z-index: 1;
           display: grid;
           place-items: center;
-          width: 40px;
-          height: 40px;
+          width: 50px;
+          height: 50px;
           line-height: 0;
-          transform-origin: 20px 20px;
+          transform-origin: 25px 25px;
           will-change: transform;
         }
         .exchanger-fan ha-icon {
           display: block;
-          width: 36px;
-          height: 36px;
-          --mdc-icon-size: 36px;
+          width: 46px;
+          height: 46px;
+          --mdc-icon-size: 46px;
         }
         .connected .exchanger-fan { animation: fan-spin var(--fan-duration) linear infinite; }
-        .unit-name { font-size: 16px; font-weight: 650; }
-        .unit-mode { color: var(--secondary-text-color); font-size: 12px; line-height: 1.4; text-align: center; }
+        .unit-name { font-size: 18px; font-weight: 650; }
+        .unit-mode { color: var(--secondary-text-color); font-size: 14px; line-height: 1.4; text-align: center; }
         .free-cooling .unit-mode { color: var(--info-color); }
 
         .bypass-track {
@@ -805,7 +805,7 @@ class GerlCraftZehnderCard extends HTMLElement {
           transition: transform 0.5s ease;
         }
 
-        .bypass-label { color: var(--secondary-text-color); font-size: 12px; }
+        .bypass-label { color: var(--secondary-text-color); font-size: 13px; }
 
         .boost-control {
           display: inline-flex;
@@ -820,7 +820,7 @@ class GerlCraftZehnderCard extends HTMLElement {
           border-radius: 6px;
           color: var(--card-accent);
           background: color-mix(in srgb, var(--card-accent) 9%, transparent);
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 650;
           cursor: pointer;
           transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
@@ -850,14 +850,14 @@ class GerlCraftZehnderCard extends HTMLElement {
         }
 
         .boost-control ha-icon {
-          width: 18px;
-          height: 18px;
-          --mdc-icon-size: 18px;
+          width: 20px;
+          height: 20px;
+          --mdc-icon-size: 20px;
         }
 
         .boost-control-status {
           color: var(--secondary-text-color);
-          font-size: 10px;
+          font-size: 11px;
           line-height: 1.2;
           text-align: center;
         }
