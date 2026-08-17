@@ -5,7 +5,9 @@ Zehnder ComfoAir Bridge. Die nativen Dashboard-Varianten sind reine Anzeigen.
 Ab Firmware v1.1.0 wird der Boost-Schalter ueber MQTT Discovery angelegt; die
 Custom Card kann ihn ab Version 1.0.11 direkt bedienen und erkennt ab Version
 1.0.12 beide gebraeuchlichen Entity-IDs automatisch. Fuer die
-Feuchteregelung ist zusaetzlich ein Node-RED-Flow enthalten. Fuer ein
+Feuchteregelung ist zusaetzlich ein Node-RED-Flow enthalten. Ab Firmware
+1.1.1 und Card-Version 1.0.15 wird die echte Restzeit des Party-Timers direkt
+unter dem Boost-Schalter angezeigt. Fuer ein
 bestehendes Dashboard wird die responsive
 GerlCraft Zehnder Card empfohlen: Sie bildet die Anlage als
 zusammenhaengende Ansicht ab, erkennt den Entity-Praefix automatisch und
@@ -20,6 +22,7 @@ benoetigt keine weitere HACS-Karte.
 - kompakte Darstellung fuer Desktop, Tablet und Smartphone
 - erkennt den Entity-Praefix automatisch
 - startet und beendet den 60-Minuten-Boost direkt unter der Bypass-Anzeige
+- zeigt die von der Q350 gemeldete Boost-Restzeit an
 - zeigt nicht verfuegbare Messwerte ohne Fehlerkarte an
 - benoetigt keine weitere HACS-Karte
 

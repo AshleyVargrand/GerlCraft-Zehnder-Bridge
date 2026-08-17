@@ -53,6 +53,56 @@ namespace
 
         return "OK";
     }
+
+    uint32_t getBoostRemainingSeconds()
+    {
+        bool boostActive = false;
+        bool remainingTimeValid = false;
+        uint32_t remainingSeconds = 0;
+
+        for (
+            size_t index = 0;
+            index < ZehnderDecoder::getSensorCount();
+            index++
+        )
+        {
+            const uint16_t pdoId =
+                ZehnderDecoder::getPdoId(index);
+
+            if (pdoId != 49 && pdoId != 81)
+            {
+                continue;
+            }
+
+            const ZehnderDecoder::SensorValue& value =
+                ZehnderDecoder::getSensorValue(index);
+
+            if (!value.valid)
+            {
+                continue;
+            }
+
+            if (pdoId == 49)
+            {
+                boostActive = value.rawValue == 6;
+                continue;
+            }
+
+            if (
+                value.rawValue >= 0
+                && static_cast<uint64_t>(value.rawValue) < UINT32_MAX
+            )
+            {
+                remainingSeconds =
+                    static_cast<uint32_t>(value.rawValue);
+                remainingTimeValid = true;
+            }
+        }
+
+        return boostActive && remainingTimeValid
+            ? remainingSeconds
+            : 0;
+    }
 }
 
 namespace ActiveDevice
@@ -183,6 +233,9 @@ namespace ActiveDevice
         json.remove(json.length() - 1);
 
         ZehnderMetrics::appendJsonFields(json);
+
+        json += ",\"boost_remaining_s\":";
+        json += String(getBoostRemainingSeconds());
 
         json += ",\"bridge_health\":\"";
         json += getBridgeHealthText();

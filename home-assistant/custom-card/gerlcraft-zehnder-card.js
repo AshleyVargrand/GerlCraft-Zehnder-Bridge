@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.0.14";
+const CARD_VERSION = "1.0.15";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -18,6 +18,14 @@ const ENTITY_DEFINITIONS = {
     domain: "switch",
     suffixes: ["boost"],
     fallbackEntityIds: ["switch.gerlcraft_zehnder_bridge_boost"],
+  },
+  boostRemaining: {
+    domain: "sensor",
+    suffixes: ["boost_restzeit"],
+    fallbackEntityIds: [
+      "sensor.gerlcraft_zehnder_bridge_boost_restzeit",
+      "sensor.gerlcraft_zehnder_bridge_lufterstufe_nachste_anderung",
+    ],
   },
   outdoorTemperature: {
     domain: "sensor",
@@ -166,6 +174,10 @@ class GerlCraftZehnderCard extends HTMLElement {
       return String(this._config.boost_entity);
     }
 
+    if (key === "boostRemaining" && this._config.boost_remaining_entity) {
+      return String(this._config.boost_remaining_entity);
+    }
+
     const configured = this._config.entities?.[key];
 
     if (configured) {
@@ -285,6 +297,7 @@ class GerlCraftZehnderCard extends HTMLElement {
     const boostState = this._state("boost");
     const boostAvailable = this._isValid(boostState);
     const boostActive = boostAvailable && boostState.state === "on";
+    const boostRemainingSeconds = this._rawNumber("boostRemaining");
     const bypass = this._rawNumber("bypass") || 0;
     const supplyFlow = this._rawNumber("supplyFlow") || 0;
     const extractFlow = this._rawNumber("extractFlow") || 0;
@@ -339,7 +352,12 @@ class GerlCraftZehnderCard extends HTMLElement {
     this._setMetric("recovered-heating-energy", "recoveredHeatingEnergy");
     this._setText("bypass", this._value("bypass"));
     this._setMetric("bypass-footer", "bypass");
-    this._updateBoostControl(connected, boostAvailable, boostActive);
+    this._updateBoostControl(
+      connected,
+      boostAvailable,
+      boostActive,
+      boostRemainingSeconds,
+    );
 
     this._updateRecovery("heat-recovery", "heatRecovery");
     this._updateRecovery("cooling-recovery", "coolingRecovery");
@@ -363,7 +381,19 @@ class GerlCraftZehnderCard extends HTMLElement {
     humidityBadge.dataset.key = humidityConfigured ? "humidity" : "";
   }
 
-  _updateBoostControl(connected, available, active) {
+  _formatBoostRemaining(seconds) {
+    if (!Number.isFinite(seconds) || seconds <= 0) {
+      return undefined;
+    }
+
+    const totalSeconds = Math.max(0, Math.round(seconds));
+    const minutes = Math.floor(totalSeconds / 60);
+    const remainingSeconds = String(totalSeconds % 60).padStart(2, "0");
+
+    return `${minutes}:${remainingSeconds} min`;
+  }
+
+  _updateBoostControl(connected, available, active, remainingSeconds) {
     const button = this.shadowRoot.getElementById("boost-control");
     const icon = this.shadowRoot.getElementById("boost-control-icon");
 
@@ -381,6 +411,9 @@ class GerlCraftZehnderCard extends HTMLElement {
           : active
             ? "Boost beenden"
             : "Boost starten";
+    const formattedRemaining = active
+      ? this._formatBoostRemaining(remainingSeconds)
+      : undefined;
     const status = this._boostPending
       ? "Befehl wird gesendet"
       : !connected
@@ -388,7 +421,9 @@ class GerlCraftZehnderCard extends HTMLElement {
         : !available
           ? "Boost-Schalter nicht verfügbar"
           : active
-            ? "Party-Timer aktiv"
+            ? formattedRemaining
+              ? `Restzeit ${formattedRemaining}`
+              : "Party-Timer aktiv"
             : "60-Minuten-Boost";
 
     button.disabled = !ready;
@@ -862,6 +897,11 @@ class GerlCraftZehnderCard extends HTMLElement {
           text-align: center;
         }
 
+        .boost-active .boost-control-status {
+          color: var(--warning-color);
+          font-weight: 650;
+        }
+
         .operation {
           display: grid;
           grid-template-rows: auto 1fr;
@@ -1087,7 +1127,7 @@ class GerlCraftZehnderCard extends HTMLElement {
                     <ha-icon id="boost-control-icon" icon="mdi:fan-clock"></ha-icon>
                     <span id="boost-control-label">Boost starten</span>
                   </button>
-                  <span class="boost-control-status" id="boost-control-status">60-Minuten-Boost</span>
+                  <span class="boost-control-status" id="boost-control-status" data-key="boostRemaining">60-Minuten-Boost</span>
                 </div>
                 <div class="duct supply-duct"><span></span><span></span><span></span></div>
                 <div class="air-node supply" data-key="supplyTemperature">

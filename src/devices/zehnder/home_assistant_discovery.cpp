@@ -258,6 +258,20 @@ namespace ZehnderHomeAssistantDiscovery
         appendComponent(
             json,
             first,
+            "boost_remaining",
+            "sensor",
+            "gerlcraft_zehnder_boost_remaining",
+            "Boost-Restzeit",
+            "{{ value_json.boost_remaining_s }}",
+            "duration",
+            "s",
+            nullptr,
+            "mdi:timer-sand"
+        );
+
+        appendComponent(
+            json,
+            first,
             "bypass_mode",
             "sensor",
             "gerlcraft_zehnder_bypass_mode",
