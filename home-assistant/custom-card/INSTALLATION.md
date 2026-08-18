@@ -65,6 +65,26 @@ von der Q350 gemeldete echte Boost-Restzeit an. Mit Firmware 1.1.0 verwendet
 sie ersatzweise den bereits vorhandenen Sensor fuer den naechsten Wechsel der
 Luefterstufe.
 
+## Optionaler Feuchtesensor
+
+Ein Feuchtesensor aus Home Assistant kann als zusaetzliches Statusfeld
+angezeigt werden. Fuer den Shelly BLU H&T ZB aus dem Node-RED-Beispiel ist
+normalerweise diese Konfiguration passend:
+
+```yaml
+type: custom:gerlcraft-zehnder-card
+title: Zehnder ComfoAir Q
+humidity_entity: sensor.shelly_blu_h_t_zb_luftfeuchtigkeit
+humidity_warning_threshold: 65
+```
+
+Unterhalb der Warnschwelle ist das Feld gruen. Ab der konfigurierten Schwelle
+wird es gelb dargestellt. Ist der konfigurierte Sensor nicht erreichbar,
+erscheint das Feld rot mit dem Zustand `Offline`.
+
+Die Einbindung des Sensors und der automatische Bad-Boost per Node-RED sind in
+[`../node-red/README.md`](../node-red/README.md) beschrieben.
+
 ## Aktualisierung
 
 Bei einer neuen Version die JavaScript-Datei ersetzen und die Versionsnummer
