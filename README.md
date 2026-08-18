@@ -153,9 +153,18 @@ Enthalten sind:
 - eine leicht animierte Variante mit `button-card`,
 - vorbereitete Einzelansichten zum Ergaenzen eines vorhandenen
   Dashboards,
-- ein Node-RED-Flow mit Schema und Anleitung fuer automatischen Bad-Boost,
+- ein Node-RED-Flow mit Schema und Anleitung fuer automatischen Bad-Boost
+  mit Shelly BLU H&T ZB,
 - eine Schritt-fuer-Schritt-Anleitung zur Installation und Anpassung der
   Entity-IDs.
+
+Die vollstaendige Einrichtung des Shelly-Sensors sowie der Import und die
+Anpassung des Node-RED-Flows sind in
+[`home-assistant/node-red/README.md`](home-assistant/node-red/README.md)
+beschrieben. Die Standardregel startet den Boost bei mindestens 5
+Prozentpunkten Feuchteanstieg innerhalb von 10 Minuten oder ab 63 % relativer
+Feuchte. Er laeuft mindestens 30 Minuten, hoechstens 60 Minuten und verwendet
+nach dem Abschalten eine Pause von 10 Minuten.
 
 ![Vorschau der GerlCraft Zehnder Card](home-assistant/custom-card/gerlcraft-zehnder-card-preview.png)
 
