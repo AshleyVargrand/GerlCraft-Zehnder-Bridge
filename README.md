@@ -11,7 +11,9 @@ Web-Konfiguration, OTA-Updates sowie ein fertiges Home-Assistant-Paket mit
 eigener responsiver Anlagenkarte. Zusaetzlich kann ein zeitlich begrenzter
 60-Minuten-Boost ueber MQTT und Home Assistant gestartet oder vorzeitig
 beendet werden. Die verbleibende Party-Timer-Zeit wird als eigener
-Home-Assistant-Sensor bereitgestellt. Andere Steuerbefehle bleiben gesperrt.
+Home-Assistant-Sensor bereitgestellt. Fuer einen Shelly BLU H&T ZB liegt ein
+Node-RED-Flow fuer den automatischen Bad-Boost bei. Andere Steuerbefehle
+bleiben gesperrt.
 
 ## Installation
 
@@ -54,6 +56,7 @@ Kurzablauf:
 - Home-Assistant-Schalter fuer einen sicheren 60-Minuten-Boost
 - echte Boost-Restzeit aus der Q350 als Home-Assistant-Sensor
 - MQTT-Booststeuerung mit fester Befehls-Whitelist
+- Node-RED-Flow fuer automatischen Bad-Boost mit Shelly BLU H&T ZB
 
 Q450 und Q600 sind noch nicht als verifiziert markiert.
 
@@ -150,8 +153,18 @@ Enthalten sind:
 - eine leicht animierte Variante mit `button-card`,
 - vorbereitete Einzelansichten zum Ergaenzen eines vorhandenen
   Dashboards,
+- ein Node-RED-Flow mit Schema und Anleitung fuer automatischen Bad-Boost
+  mit Shelly BLU H&T ZB,
 - eine Schritt-fuer-Schritt-Anleitung zur Installation und Anpassung der
   Entity-IDs.
+
+Die vollstaendige Einrichtung des Shelly-Sensors sowie der Import und die
+Anpassung des Node-RED-Flows sind in
+[`home-assistant/node-red/README.md`](home-assistant/node-red/README.md)
+beschrieben. Die Standardregel startet den Boost bei mindestens 5
+Prozentpunkten Feuchteanstieg innerhalb von 10 Minuten oder ab 63 % relativer
+Feuchte. Er laeuft mindestens 30 Minuten, hoechstens 60 Minuten und verwendet
+nach dem Abschalten eine Pause von 10 Minuten.
 
 ![Vorschau der GerlCraft Zehnder Card](home-assistant/custom-card/gerlcraft-zehnder-card-preview.png)
 

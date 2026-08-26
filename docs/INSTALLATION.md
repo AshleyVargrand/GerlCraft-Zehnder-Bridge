@@ -280,6 +280,8 @@ Das Paket enthaelt:
 - `view-native.yaml` als einzelne Seite fuer ein vorhandenes Dashboard,
 - `view-animated.yaml` als einzelne animierte Seite fuer ein vorhandenes
   Dashboard,
+- `node-red/zehnder-bad-feuchte-boost.json` als importierbarer Flow fuer
+  automatischen Bad-Boost mit Shelly BLU H&T ZB,
 - `README.md` und `custom-card/INSTALLATION.md` mit der genauen Einrichtung.
 
 Fuer ein bestehendes Dashboard wird die GerlCraft Zehnder Card empfohlen. Sie
@@ -300,6 +302,74 @@ Falls Home Assistant bei der ersten Einrichtung andere Entity-IDs erzeugt
 hat, wird der Praefix `zehnder_comfoair_q350` in der Dashboard-Datei einmalig
 durch den eigenen Entity-Praefix ersetzt. Die genaue Vorgehensweise steht in
 der beiliegenden Dashboard-Anleitung.
+
+### Shelly BLU H&T ZB und Node-RED-Boost einrichten
+
+Der optionale Feuchtesensor wird als Zigbee-Geraet in Home Assistant
+eingebunden. Er steuert nicht direkt die Zehnder-Anlage, sondern liefert nur
+den Feuchtewert fuer den Node-RED-Flow. Der Flow schaltet anschliessend den von
+der Bridge angelegten Home-Assistant-Schalter `Boost`.
+
+Voraussetzungen:
+
+- Bridge-Firmware mindestens 1.1.0
+- funktionierende MQTT-Integration in Home Assistant
+- sichtbarer Boost-Schalter, normalerweise
+  `switch.zehnder_comfoair_q350_boost`
+- Zigbee-Koordinator mit ZHA oder Zigbee2MQTT
+- Node-RED mit Home-Assistant-Anbindung
+
+Shelly-Sensor mit ZHA koppeln:
+
+1. In Home Assistant `Einstellungen > Zigbee` oeffnen.
+2. Unten rechts `Geraet hinzufuegen` waehlen.
+3. Den Shelly BLU H&T ZB in die Naehe des Zigbee-Koordinators legen.
+4. Am Sensor die Taste fuenfmal schnell druecken. Die rote LED blinkt waehrend
+   des Zigbee-Pairings zweimal alle zwei Sekunden.
+5. Warten, bis Home Assistant den Sensor gefunden hat.
+6. Einen sprechenden Namen vergeben, zum Beispiel `Shelly Bad`, und den Raum
+   `Bad` zuweisen.
+
+Bei Zigbee2MQTT stattdessen `Permit join` aktivieren, den Sensor mit fuenf
+schnellen Tastendruecken in den Zigbee-Pairingmodus versetzen und das neue
+Geraet danach sinnvoll umbenennen.
+
+Der beiliegende Flow verwendet standardmaessig diese Entity-IDs:
+
+```text
+sensor.shelly_blu_h_t_zb_luftfeuchtigkeit
+switch.zehnder_comfoair_q350_boost
+```
+
+Falls Home Assistant andere Namen erzeugt hat, die Entity-IDs in Node-RED
+entsprechend ersetzen. Die vollstaendige Anleitung mit Schema steht in:
+
+```text
+home-assistant/node-red/README.md
+```
+
+Der Ablauf des Flows:
+
+```text
+Shelly-Feuchte -> Node-RED-Auswertung -> Boost-Schalter EIN/AUS
+```
+
+Die Standardparameter sind:
+
+| Parameter | Wert |
+|---|---:|
+| Feuchtefenster | 10 Minuten |
+| Start bei schnellem Anstieg | 5 Prozentpunkte |
+| Start bei hoher Feuchte | 63 % |
+| Mindestlaufzeit | 30 Minuten |
+| Maximallaufzeit | 60 Minuten |
+| Trocken-Ziel | Ausgangswert + 3 Prozentpunkte, maximal 65 % |
+| Pause nach Boost-Ende | 10 Minuten |
+
+Vor dem Aktivieren den Boost-Schalter einmal manuell in Home Assistant testen.
+Der Flow-Tab ist beim Import absichtlich deaktiviert. Erst den eigenen
+Home-Assistant-Server in den drei HA-Nodes auswaehlen, Sensor- und
+Boost-Entity pruefen, dann den Flow aktivieren und bereitstellen.
 
 ## 10. Spaetere Updates per WLAN
 

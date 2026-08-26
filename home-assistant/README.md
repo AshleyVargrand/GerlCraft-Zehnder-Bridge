@@ -5,11 +5,11 @@ Zehnder ComfoAir Bridge. Die nativen Dashboard-Varianten sind reine Anzeigen.
 Ab Firmware v1.1.0 wird der Boost-Schalter ueber MQTT Discovery angelegt; die
 Custom Card kann ihn ab Version 1.0.11 direkt bedienen und erkennt ab Version
 1.0.12 beide gebraeuchlichen Entity-IDs automatisch. Fuer die
-Feuchteregelung ist zusaetzlich ein Node-RED-Flow enthalten. Ab Firmware
-1.1.1 und Card-Version 1.0.15 wird die echte Restzeit des Party-Timers direkt
-unter dem Boost-Schalter angezeigt. Fuer ein
-bestehendes Dashboard wird die responsive
-GerlCraft Zehnder Card empfohlen: Sie bildet die Anlage als
+Feuchteregelung ist zusaetzlich ein Node-RED-Flow mit eigener Anleitung
+enthalten. Ab Firmware 1.1.1 und Card-Version 1.0.15 wird die echte Restzeit
+des Party-Timers direkt unter dem Boost-Schalter angezeigt. Fuer ein
+bestehendes Dashboard wird die responsive GerlCraft Zehnder Card empfohlen:
+Sie bildet die Anlage als
 zusammenhaengende Ansicht ab, erkennt den Entity-Praefix automatisch und
 benoetigt keine weitere HACS-Karte.
 
@@ -35,6 +35,8 @@ Seite fuer ein bestehendes Dashboard liegt in `view-custom-card.yaml`.
 ### `node-red/zehnder-bad-feuchte-boost.json`
 
 - importierbarer Node-RED-Flow fuer den automatischen Bad-Boost
+- eigene Schritt-fuer-Schritt-Anleitung in
+  [`node-red/README.md`](node-red/README.md)
 - verwendet standardmaessig den Shelly-Sensor
   `sensor.shelly_blu_h_t_zb_luftfeuchtigkeit`
 - startet bei schnellem Feuchteanstieg oder einer hohen Absolutfeuchte
@@ -55,8 +57,8 @@ Vor dem Aktivieren des Flows:
    Q350 kontrollieren.
 4. Erst danach den Flow aktivieren und bereitstellen.
 
-Die Standardregel startet bei einem Anstieg um mindestens 7 Prozentpunkte
-innerhalb von 5 Minuten oder ab 72 Prozent relativer Feuchte. Sie laeuft
+Die Standardregel startet bei einem Anstieg um mindestens 5 Prozentpunkte
+innerhalb von 10 Minuten oder ab 63 Prozent relativer Feuchte. Sie laeuft
 mindestens 30 Minuten und beendet den Boost erst, wenn das Bad wieder nahe am
 Ausgangswert liegt. Nach 60 Minuten beendet die Q350 ihren Timer unabhaengig
 von Node-RED.
