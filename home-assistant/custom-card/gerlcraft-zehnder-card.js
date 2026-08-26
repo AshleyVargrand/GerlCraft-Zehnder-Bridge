@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.0.15";
+const CARD_VERSION = "1.0.16";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -75,7 +75,10 @@ const ENTITY_DEFINITIONS = {
   },
   recoveredHeatingEnergy: {
     domain: "sensor",
-    suffixes: ["eingesparte_heizenergie_gesamt"],
+    suffixes: [
+      "eingesparte_heizenergie_gesamt",
+      "vermiedene_heizenergie_gesamt",
+    ],
   },
 };
 
