@@ -11,6 +11,8 @@ namespace CanMonitor
 
     bool startBoost60Minutes();
     bool stopBoost();
+    bool setFanLevel(uint8_t level);
+    bool setVentilationMode(bool manual);
 
     bool isDriverRunning();
     bool isBusActive();

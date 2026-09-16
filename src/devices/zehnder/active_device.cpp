@@ -15,6 +15,28 @@
 
 namespace
 {
+    bool isBoostActive()
+    {
+        for (
+            size_t index = 0;
+            index < ZehnderDecoder::getSensorCount();
+            index++
+        )
+        {
+            if (ZehnderDecoder::getPdoId(index) != 49)
+            {
+                continue;
+            }
+
+            const ZehnderDecoder::SensorValue& value =
+                ZehnderDecoder::getSensorValue(index);
+
+            return value.valid && value.rawValue == 6;
+        }
+
+        return false;
+    }
+
     String uint64ToString(const uint64_t value)
     {
         char buffer[24];
@@ -56,7 +78,7 @@ namespace
 
     uint32_t getBoostRemainingSeconds()
     {
-        bool boostActive = false;
+        const bool boostActive = isBoostActive();
         bool remainingTimeValid = false;
         uint32_t remainingSeconds = 0;
 
@@ -69,7 +91,7 @@ namespace
             const uint16_t pdoId =
                 ZehnderDecoder::getPdoId(index);
 
-            if (pdoId != 49 && pdoId != 81)
+            if (pdoId != 81)
             {
                 continue;
             }
@@ -79,12 +101,6 @@ namespace
 
             if (!value.valid)
             {
-                continue;
-            }
-
-            if (pdoId == 49)
-            {
-                boostActive = value.rawValue == 6;
                 continue;
             }
 
@@ -132,6 +148,56 @@ namespace ActiveDevice
         return active
             ? CanMonitor::startBoost60Minutes()
             : CanMonitor::stopBoost();
+    }
+
+    bool setFanLevel(const uint8_t level)
+    {
+        if (level > 3)
+        {
+            Serial.println(
+                "Luefterstufen-Befehl abgelehnt: ungueltiger Wert"
+            );
+            return false;
+        }
+
+        if (!ZehnderDecoder::isOnline())
+        {
+            Serial.println(
+                "Luefterstufen-Befehl abgelehnt: Zehnder ist nicht online"
+            );
+            return false;
+        }
+
+        if (isBoostActive())
+        {
+            Serial.println(
+                "Luefterstufen-Befehl abgelehnt: Boost ist aktiv"
+            );
+            return false;
+        }
+
+        return CanMonitor::setFanLevel(level);
+    }
+
+    bool setVentilationMode(const bool manual)
+    {
+        if (!ZehnderDecoder::isOnline())
+        {
+            Serial.println(
+                "Betriebsart-Befehl abgelehnt: Zehnder ist nicht online"
+            );
+            return false;
+        }
+
+        if (isBoostActive())
+        {
+            Serial.println(
+                "Betriebsart-Befehl abgelehnt: Boost ist aktiv"
+            );
+            return false;
+        }
+
+        return CanMonitor::setVentilationMode(manual);
     }
 
     bool isOnline()

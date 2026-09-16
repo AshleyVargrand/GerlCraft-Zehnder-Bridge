@@ -1,0 +1,12 @@
+# GerlCraft Zehnder Signature Card - einzelne vollbreite Ansicht
+# Vorher custom-card/INSTALLATION.md befolgen.
+
+  - title: Zehnder
+    path: zehnder-signature
+    icon: mdi:air-filter
+    show_icon_and_title: true
+    type: panel
+    cards:
+      - type: custom:gerlcraft-zehnder-card-v14
+        title: Zehnder ComfoAir Q
+        full_height: true

@@ -133,7 +133,9 @@ def package_dashboard(site_dir, release_dir):
         dashboard_source / "view-animated.yaml",
         dashboard_source / "view-animated-v2.yaml",
         dashboard_source / "view-custom-card.yaml",
+        dashboard_source / "view-signature-card.yaml",
         dashboard_source / "custom-card" / "gerlcraft-zehnder-card.js",
+        dashboard_source / "custom-card" / "zehnder_card_v145_final.js",
         dashboard_source / "custom-card" / "INSTALLATION.md",
         dashboard_source / "node-red" / "zehnder-bad-feuchte-boost.json",
     )

@@ -3,16 +3,17 @@
 Dieses Verzeichnis enthaelt die Home-Assistant-Custom-Card fuer die Zehnder
 ComfoAir Q. Es gibt zwei moegliche Kartentypen:
 
-- **Signature Card v1.4.5**: grosse Anlagenansicht mit ruhigem
+- **Signature Card v1.5.2**: grosse Anlagenansicht mit ruhigem
   Waermetauscher-Luefter, groesseren Live-Werten, Boost-Bedienung und
   verstaendlicher Filterwarnung.
-- **Klassische Card v1.0.x**: kompaktere Anlagenkarte mit animierten
+- **Klassische Card v1.1.1**: kompaktere Anlagenkarte mit animierten
   Luftstroemen, Boost-Bedienung und den bisherigen Messwert-Kacheln.
 
 Beide Karten verwenden die von der Bridge per MQTT Discovery angelegten
-Home-Assistant-Entitaeten. Andere Anlagenfunktionen bleiben reine Anzeigen.
-Als einziger schreibender Zugriff ist der auf 60 Minuten begrenzte Boost
-freigegeben.
+Home-Assistant-Entitaeten. Als schreibende Zugriffe sind der auf 60 Minuten
+begrenzte Boost und die normale Luefterstufenwahl 0 bis 3 freigegeben. Andere
+Anlagenfunktionen bleiben reine Anzeigen. Die Betriebsart kann getrennt auf
+Automatik oder auf einen dauerhaften manuellen Betrieb gesetzt werden.
 
 ## Vorschau
 
@@ -20,7 +21,7 @@ freigegeben.
 
 ## Welche Variante soll ich nehmen?
 
-Fuer ein neues Dashboard wird die **Signature Card v1.4.5** empfohlen.
+Fuer ein neues Dashboard wird die **Signature Card v1.5.2** empfohlen.
 Sie ist besser fuer grosse Tablet- oder Wanddisplay-Ansichten lesbar und zeigt
 die Filterwarnung direkt verstaendlich an.
 
@@ -44,7 +45,7 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 3. Eine JavaScript-Modulressource hinzufuegen:
 
    ```text
-   /local/gerlcraft-zehnder-card.js?v=1.0.16
+   /local/gerlcraft-zehnder-card.js?v=1.1.1
    ```
 
 4. Die Karte im Dashboard so einbinden:
@@ -58,7 +59,7 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 
 5. Speichern und den Browser einmal vollstaendig neu laden.
 
-## Installation: Signature Card v1.4.5
+## Installation: Signature Card v1.5.2
 
 1. Die Signature-JavaScript-Datei nach Home Assistant kopieren:
 
@@ -71,7 +72,7 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 3. Eine JavaScript-Modulressource hinzufuegen:
 
    ```text
-   /local/zehnder_card_v145_final.js?v=1.4.5-final
+   /local/zehnder_card_v145_final.js?v=1.5.2
    ```
 
 4. Die Karte im Dashboard so einbinden:
@@ -93,18 +94,20 @@ werden:
 
 1. Das vorhandene Dashboard oeffnen.
 2. Den Raw-Konfigurationseditor oeffnen.
-3. Den Inhalt von `../view-custom-card.yaml` am Ende der vorhandenen
-   `views:`-Liste einfuegen.
+3. Fuer die grosse Signature Card den Inhalt von
+   `../view-signature-card.yaml` am Ende der vorhandenen `views:`-Liste
+   einfuegen. Fuer die klassische Card stattdessen
+   `../view-custom-card.yaml` verwenden.
 4. Speichern und den Browser einmal vollstaendig neu laden.
 
-Die vorbereitete Ansicht verwendet die Signature Card:
+Die empfohlene vorbereitete Ansicht verwendet die Signature Card:
 
 ```yaml
 type: custom:gerlcraft-zehnder-card-v14
 ```
 
-Die neue Seite erscheint als Reiter `Zehnder` unter dem URL-Pfad
-`zehnder-card`.
+Die Signature-Seite erscheint als Reiter `Zehnder` unter dem URL-Pfad
+`zehnder-signature`. Die klassische Ansicht verwendet `zehnder-card`.
 
 ## Alternative Entity-Praefixe
 
@@ -122,6 +125,8 @@ humidity_entity: sensor.shelly_blu_h_t_zb_luftfeuchtigkeit
 humidity_warning_threshold: 65
 boost_entity: switch.gerlcraft_zehnder_bridge_boost
 boost_remaining_entity: sensor.gerlcraft_zehnder_bridge_boost_restzeit
+fan_level_control_entity: select.zehnder_comfoair_q350_lufterstufe_einstellen
+ventilation_mode_control_entity: select.zehnder_comfoair_q350_betriebsart_einstellen
 full_height: true
 ```
 
@@ -135,6 +140,8 @@ humidity_entity: sensor.shelly_blu_h_t_zb_luftfeuchtigkeit
 humidity_warning_threshold: 65
 boost_entity: switch.gerlcraft_zehnder_bridge_boost
 boost_remaining_entity: sensor.gerlcraft_zehnder_bridge_boost_restzeit
+fan_level_control_entity: select.zehnder_comfoair_q350_lufterstufe_einstellen
+ventilation_mode_control_entity: select.zehnder_comfoair_q350_betriebsart_einstellen
 ```
 
 Einzelne Entity-IDs koennen bei Bedarf ebenfalls ueberschrieben werden:
@@ -146,6 +153,8 @@ entities:
   extractFlow: sensor.meine_abluft
   boost: switch.mein_zehnder_boost
   boostRemaining: sensor.meine_zehnder_boost_restzeit
+  fanLevelControl: select.meine_zehnder_lufterstufe
+  ventilationModeControl: select.meine_zehnder_betriebsart
 ```
 
 Fuer die klassische Card wird in diesem Beispiel nur der Kartentyp ersetzt:
@@ -161,6 +170,13 @@ Ohne Ueberschreibung erkennt die Karte sowohl
 von der Q350 gemeldete echte Boost-Restzeit an. Mit Firmware 1.1.0 verwendet
 sie ersatzweise den bereits vorhandenen Sensor fuer den naechsten Wechsel der
 Luefterstufe.
+
+Ab Firmware 1.2.0 wird die Select-Entitaet fuer Abwesend, Niedrig, Mittel und
+Hoch sowie eine zweite Select-Entitaet fuer Automatik und Manuell automatisch
+angelegt. Die Karten sperren beide Auswahlen waehrend eines aktiven Boosts und
+warten nach jeder Auswahl auf die Rueckmeldung der Anlage. Automatik verwendet
+eine zeitbegrenzte Stufenwahl; Manuell behaelt die gewaehlte Stufe bei, bis
+wieder Automatik gewaehlt wird.
 
 ## Optionaler Feuchtesensor
 

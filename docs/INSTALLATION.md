@@ -67,9 +67,10 @@ vollstaendig erhalten.
 - CAN-H und CAN-L nicht vertauschen.
 - Keinen zusaetzlichen 120-Ohm-Abschlusswiderstand an einer Stichleitung
   montieren.
-- Die Firmware sendet PDO-Leseanfragen. Ab v1.1.0 ist zusaetzlich nur der
-  zeitlich begrenzte 60-Minuten-Boost samt vorzeitigem Beenden freigegeben.
-  Beliebige CAN-/RMI-Befehle bleiben gesperrt.
+- Die Firmware sendet PDO-Leseanfragen. Freigegeben sind ausschliesslich der
+  zeitlich begrenzte 60-Minuten-Boost samt vorzeitigem Beenden und ab v1.2.0
+  die normalen Luefterstufen 0 bis 3 sowie Automatik/Manuell. Beliebige
+  CAN-/RMI-Befehle bleiben gesperrt.
 - Anschlussbelegung und Kabelfarben immer an der eigenen Anlage pruefen.
 
 ## 1. Software installieren
@@ -257,6 +258,37 @@ Nach erfolgreicher MQTT-Verbindung veroeffentlicht die Bridge automatisch
 ihre Home-Assistant-Discovery. Unter `Einstellungen > Geraete & Dienste >
 MQTT` sollte das Zehnder-Geraet mit seinen Entitaeten erscheinen.
 
+Ab Firmware v1.2.0 wird zusaetzlich die Auswahl
+`Luefterstufe einstellen` angelegt. Sie bietet:
+
+```text
+Abwesend (0)
+Niedrig   (1)
+Mittel    (2)
+Hoch      (3)
+```
+
+Die zweite Auswahl `Betriebsart einstellen` legt fest, wie lange die Stufe
+gelten soll:
+
+```text
+Automatik = Stufenwahl ist zeitbegrenzt; die Anlagenautomatik uebernimmt
+            nach etwa zwei Stunden wieder.
+Manuell   = Gewaehlte Stufe bleibt aktiv, bis wieder Automatik gewaehlt wird.
+```
+
+Die Bridge akzeptiert nur diese vier Werte. Eine Auswahl wird waehrend eines
+aktiven Boosts abgelehnt. Home Assistant zeigt die neue Stufe erst dann als
+aktiv an, wenn sie von der Zehnder wieder im MQTT-Zustand gemeldet wurde. Die
+manuelle Stufe wird von der Anlagensteuerung nach ihrer vorgesehenen Laufzeit
+wieder durch den Automatikbetrieb abgeloest.
+
+Fuer den ersten Funktionstest die Betriebsart auf `Automatik` belassen,
+zwischen `Niedrig` und `Mittel` wechseln und kontrollieren, ob sich die
+angezeigte Luefterstufe und die Volumenstroeme entsprechend aktualisieren.
+Danach `Manuell` kurz testen und anschliessend bewusst wieder auf `Automatik`
+zurueckstellen. `Abwesend` und `Hoch` erst danach gezielt pruefen.
+
 Die bestehenden MQTT-Topics und Home-Assistant-Unique-IDs bleiben auch bei
 Updates unveraendert. Dadurch entstehen keine doppelten Entitaeten.
 
@@ -270,11 +302,12 @@ https://ashleyvargrand.github.io/GerlCraft-Zehnder-Bridge/
 
 Das Paket enthaelt:
 
-- `custom-card/gerlcraft-zehnder-card.js` als empfohlene responsive
-  Anlagenvisualisierung mit animierten Luftstroemen und direkter
-  Boost-Steuerung,
-- `view-custom-card.yaml` als fertige vollbreite Seite fuer ein vorhandenes
-  Dashboard,
+- `custom-card/zehnder_card_v145_final.js` als grosse Signature Card mit
+  animierten Luftstroemen, Boost- und Luefterstufensteuerung,
+- `custom-card/gerlcraft-zehnder-card.js` als kompaktere klassische
+  Anlagenvisualisierung mit Boost- und Luefterstufensteuerung,
+- `view-signature-card.yaml` und `view-custom-card.yaml` als fertige
+  vollbreite Seiten fuer ein vorhandenes Dashboard,
 - `dashboard-native.yaml` ohne zusaetzliche Home-Assistant-Karten,
 - `dashboard-animated.yaml` mit einer dezenten Animation und `button-card`,
 - `view-native.yaml` als einzelne Seite fuer ein vorhandenes Dashboard,
@@ -284,10 +317,11 @@ Das Paket enthaelt:
   automatischen Bad-Boost mit Shelly BLU H&T ZB,
 - `README.md` und `custom-card/INSTALLATION.md` mit der genauen Einrichtung.
 
-Fuer ein bestehendes Dashboard wird die GerlCraft Zehnder Card empfohlen. Sie
+Fuer ein bestehendes Dashboard wird die grosse Signature Card empfohlen. Sie
 erkennt den Entity-Praefix automatisch und benoetigt keine weitere HACS-Karte.
 Hierfuer zuerst die JavaScript-Datei als Home-Assistant-Ressource eintragen und
-danach `view-custom-card.yaml` als neue Ansicht hinzufuegen.
+danach `view-signature-card.yaml` als neue Ansicht hinzufuegen. Die klassische
+Card bleibt mit `view-custom-card.yaml` als zweite Stilvariante enthalten.
 
 Fuer ein neues, leeres Dashboard den kompletten Inhalt einer
 `dashboard-*.yaml` verwenden. Bei einem bereits vorhandenen Dashboard im

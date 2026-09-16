@@ -18,6 +18,7 @@ namespace
 
     constexpr uint32_t STATE_PUBLISH_INTERVAL_MS = 10000;
     constexpr uint32_t DISCOVERY_RETRY_INTERVAL_MS = 10000;
+    constexpr uint32_t CONTROL_COMMAND_INTERVAL_MS = 1000;
     constexpr uint32_t MQTT_MAX_PACKET_SIZE = 32768;
 
     String currentFirmwareVersion = "unknown";
@@ -28,6 +29,8 @@ namespace
     volatile bool connectionEventPending = false;
     volatile bool homeAssistantBirthPending = false;
     volatile uint8_t pendingBoostCommand = 0;
+    volatile int8_t pendingFanLevelCommand = -1;
+    volatile int8_t pendingVentilationModeCommand = -1;
 
     bool discoveryPublishPending = false;
     uint32_t discoveryPublishNotBeforeAt = 0;
@@ -36,11 +39,38 @@ namespace
     bool lastPublishedOnlineState = false;
 
     uint32_t lastStatePublishedAt = 0;
+    uint32_t lastControlCommandAt = 0;
     uint32_t publishCount = 0;
 
     void queueBoostCommand(const bool active)
     {
+        pendingFanLevelCommand = -1;
+        pendingVentilationModeCommand = -1;
         pendingBoostCommand = active ? 1 : 2;
+    }
+
+    void queueFanLevelCommand(const uint8_t level)
+    {
+        if (
+            pendingBoostCommand != 0
+            || pendingVentilationModeCommand >= 0
+        )
+        {
+            return;
+        }
+
+        pendingFanLevelCommand = static_cast<int8_t>(level);
+    }
+
+    void queueVentilationModeCommand(const bool manual)
+    {
+        if (pendingBoostCommand != 0)
+        {
+            return;
+        }
+
+        pendingFanLevelCommand = -1;
+        pendingVentilationModeCommand = manual ? 1 : 0;
     }
 
     void markConnected()
@@ -162,6 +192,54 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
 
             Serial.printf(
                 "Unbekannter Boost-Befehl ignoriert: %s\n",
+                payload.c_str()
+            );
+        },
+        0
+    );
+
+    mqttClient.subscribe(
+        AppConfig::MQTT_FAN_LEVEL_COMMAND_TOPIC,
+        [](const std::string& payload)
+        {
+            if (
+                payload.size() == 1
+                && payload[0] >= '0'
+                && payload[0] <= '3'
+            )
+            {
+                queueFanLevelCommand(
+                    static_cast<uint8_t>(payload[0] - '0')
+                );
+                return;
+            }
+
+            Serial.printf(
+                "Ungueltige Luefterstufe ignoriert: %s\n",
+                payload.c_str()
+            );
+        },
+        0
+    );
+
+    mqttClient.subscribe(
+        AppConfig::MQTT_VENTILATION_MODE_COMMAND_TOPIC,
+        [](const std::string& payload)
+        {
+            if (payload == "auto")
+            {
+                queueVentilationModeCommand(false);
+                return;
+            }
+
+            if (payload == "manual")
+            {
+                queueVentilationModeCommand(true);
+                return;
+            }
+
+            Serial.printf(
+                "Ungueltige Betriebsart ignoriert: %s\n",
                 payload.c_str()
             );
         },
@@ -342,10 +420,18 @@ namespace MqttManager
 
         const uint32_t currentTime = millis();
 
-        if (pendingBoostCommand != 0)
+        const bool controlCommandAllowed =
+            lastControlCommandAt == 0
+            || currentTime - lastControlCommandAt
+                >= CONTROL_COMMAND_INTERVAL_MS;
+
+        if (controlCommandAllowed && pendingBoostCommand != 0)
         {
             const uint8_t command = pendingBoostCommand;
             pendingBoostCommand = 0;
+            pendingFanLevelCommand = -1;
+            pendingVentilationModeCommand = -1;
+            lastControlCommandAt = currentTime;
 
             const bool success = ActiveDevice::setBoost(
                 command == 1
@@ -355,6 +441,52 @@ namespace MqttManager
                 "MQTT Boost-Befehl %s: %s\n",
                 command == 1 ? "START" : "ENDE",
                 success ? "gesendet" : "fehlgeschlagen"
+            );
+
+            if (success)
+            {
+                lastStatePublishedAt = 0;
+            }
+        }
+
+        else if (
+            controlCommandAllowed
+            && pendingVentilationModeCommand >= 0
+        )
+        {
+            const bool manual =
+                pendingVentilationModeCommand == 1;
+            pendingVentilationModeCommand = -1;
+            lastControlCommandAt = currentTime;
+
+            const bool success =
+                ActiveDevice::setVentilationMode(manual);
+
+            Serial.printf(
+                "MQTT Betriebsart %s: %s\n",
+                manual ? "MANUELL" : "AUTOMATIK",
+                success ? "gesendet" : "abgelehnt"
+            );
+
+            if (success)
+            {
+                lastStatePublishedAt = 0;
+            }
+        }
+        else if (controlCommandAllowed && pendingFanLevelCommand >= 0)
+        {
+            const uint8_t level = static_cast<uint8_t>(
+                pendingFanLevelCommand
+            );
+            pendingFanLevelCommand = -1;
+            lastControlCommandAt = currentTime;
+
+            const bool success = ActiveDevice::setFanLevel(level);
+
+            Serial.printf(
+                "MQTT Luefterstufe %u: %s\n",
+                level,
+                success ? "gesendet" : "abgelehnt"
             );
 
             if (success)

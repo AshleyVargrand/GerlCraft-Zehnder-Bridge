@@ -11,6 +11,8 @@ namespace ActiveDevice
     void update();
 
     bool setBoost(bool active);
+    bool setFanLevel(uint8_t level);
+    bool setVentilationMode(bool manual);
 
     bool isOnline();
     String getStatusText();

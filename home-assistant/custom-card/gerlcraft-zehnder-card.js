@@ -1,9 +1,23 @@
-const CARD_VERSION = "1.0.16";
+const CARD_VERSION = "1.1.1";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
   connection: { domain: "binary_sensor", suffixes: ["verbindung"] },
   fanLevel: { domain: "sensor", suffixes: ["lufterstufe"] },
+  fanLevelControl: {
+    domain: "select",
+    suffixes: ["lufterstufe_einstellen"],
+    fallbackEntityIds: [
+      "select.gerlcraft_zehnder_bridge_lufterstufe_einstellen",
+    ],
+  },
+  ventilationModeControl: {
+    domain: "select",
+    suffixes: ["betriebsart_einstellen"],
+    fallbackEntityIds: [
+      "select.gerlcraft_zehnder_bridge_betriebsart_einstellen",
+    ],
+  },
   operatingMode: { domain: "sensor", suffixes: ["betriebsmodus"] },
   bridgeHealth: { domain: "sensor", suffixes: ["bridge_gesundheit"] },
   filterStatus: { domain: "sensor", suffixes: ["filterstatus"] },
@@ -94,6 +108,12 @@ class GerlCraftZehnderCard extends HTMLElement {
     this._boostPending = false;
     this._boostTargetState = undefined;
     this._boostPendingTimeout = undefined;
+    this._fanLevelPending = false;
+    this._fanLevelTarget = undefined;
+    this._fanLevelPendingTimeout = undefined;
+    this._ventilationModePending = false;
+    this._ventilationModeTarget = undefined;
+    this._ventilationModePendingTimeout = undefined;
     this._renderShell();
     this.shadowRoot.addEventListener("click", (event) => this._handleClick(event));
   }
@@ -126,6 +146,25 @@ class GerlCraftZehnderCard extends HTMLElement {
 
       if (targetReached) {
         this._clearBoostPending();
+      }
+    }
+
+    if (this._fanLevelPending && this._fanLevelTarget !== undefined) {
+      const fanLevelState = this._state("fanLevelControl")?.state;
+
+      if (fanLevelState === this._fanLevelTarget) {
+        this._clearFanLevelPending();
+      }
+    }
+
+    if (
+      this._ventilationModePending &&
+      this._ventilationModeTarget !== undefined
+    ) {
+      const modeState = this._state("ventilationModeControl")?.state;
+
+      if (modeState === this._ventilationModeTarget) {
+        this._clearVentilationModePending();
       }
     }
 
@@ -179,6 +218,17 @@ class GerlCraftZehnderCard extends HTMLElement {
 
     if (key === "boostRemaining" && this._config.boost_remaining_entity) {
       return String(this._config.boost_remaining_entity);
+    }
+
+    if (key === "fanLevelControl" && this._config.fan_level_control_entity) {
+      return String(this._config.fan_level_control_entity);
+    }
+
+    if (
+      key === "ventilationModeControl" &&
+      this._config.ventilation_mode_control_entity
+    ) {
+      return String(this._config.ventilation_mode_control_entity);
     }
 
     const configured = this._config.entities?.[key];
@@ -301,6 +351,12 @@ class GerlCraftZehnderCard extends HTMLElement {
     const boostAvailable = this._isValid(boostState);
     const boostActive = boostAvailable && boostState.state === "on";
     const boostRemainingSeconds = this._rawNumber("boostRemaining");
+    const fanLevelControlState = this._state("fanLevelControl");
+    const fanLevelControlAvailable = this._isValid(fanLevelControlState);
+    const ventilationModeControlState = this._state("ventilationModeControl");
+    const ventilationModeControlAvailable = this._isValid(
+      ventilationModeControlState,
+    );
     const bypass = this._rawNumber("bypass") || 0;
     const supplyFlow = this._rawNumber("supplyFlow") || 0;
     const extractFlow = this._rawNumber("extractFlow") || 0;
@@ -360,6 +416,19 @@ class GerlCraftZehnderCard extends HTMLElement {
       boostAvailable,
       boostActive,
       boostRemainingSeconds,
+    );
+    this._updateFanLevelControl(
+      connected,
+      fanLevelControlAvailable,
+      boostActive,
+      fanLevelControlState?.state,
+      ventilationModeControlState?.state,
+    );
+    this._updateVentilationModeControl(
+      connected,
+      ventilationModeControlAvailable,
+      boostActive,
+      ventilationModeControlState?.state,
     );
 
     this._updateRecovery("heat-recovery", "heatRecovery");
@@ -489,6 +558,194 @@ class GerlCraftZehnderCard extends HTMLElement {
     }
   }
 
+  _updateFanLevelControl(
+    connected,
+    available,
+    boostActive,
+    currentOption,
+    currentMode,
+  ) {
+    const buttons = this.shadowRoot.querySelectorAll("[data-fan-level-option]");
+    const ready = connected && available && !boostActive
+      && !this._ventilationModePending && !this._fanLevelPending;
+
+    buttons.forEach((button) => {
+      const active = button.dataset.fanLevelOption === currentOption;
+      button.disabled = !ready;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+
+    const status = this._fanLevelPending
+      ? `Stufe ${this._fanLevelTarget} wird angefordert …`
+      : !connected
+        ? "Bridge nicht verbunden"
+        : !available
+          ? "Steuerung nicht verfügbar"
+          : boostActive
+            ? "Während Boost gesperrt"
+            : this._ventilationModePending
+              ? "Betriebsart wird umgestellt"
+              : currentMode === "Manuell"
+                ? "Dauerhaft, bis Automatik gewählt wird"
+                : "Zeitbegrenzt, Automatik wieder nach ca. 2 Stunden";
+
+    this._setText("fan-level-control-status", status);
+  }
+
+  _clearFanLevelPending() {
+    if (this._fanLevelPendingTimeout !== undefined) {
+      clearTimeout(this._fanLevelPendingTimeout);
+    }
+
+    this._fanLevelPending = false;
+    this._fanLevelTarget = undefined;
+    this._fanLevelPendingTimeout = undefined;
+  }
+
+  async _setFanLevel(option) {
+    if (
+      !this._hass ||
+      this._fanLevelPending ||
+      this._ventilationModePending
+    ) {
+      return;
+    }
+
+    const entityId = this._entityId("fanLevelControl");
+    const stateObject = entityId ? this._hass.states[entityId] : undefined;
+
+    if (
+      !entityId ||
+      !this._isValid(stateObject) ||
+      !["Abwesend", "Niedrig", "Mittel", "Hoch"].includes(option)
+    ) {
+      return;
+    }
+
+    if (stateObject.state === option) {
+      return;
+    }
+
+    this._fanLevelPending = true;
+    this._fanLevelTarget = option;
+    this._update();
+
+    try {
+      await this._hass.callService(
+        "select",
+        "select_option",
+        { entity_id: entityId, option },
+      );
+
+      if (this._fanLevelPending) {
+        this._fanLevelPendingTimeout = setTimeout(() => {
+          this._clearFanLevelPending();
+          this._update();
+        }, 15000);
+      }
+    } catch (error) {
+      console.error(
+        "GerlCraft Zehnder Card: Lüfterstufe konnte nicht geschaltet werden",
+        error,
+      );
+      this._clearFanLevelPending();
+      this._update();
+    }
+  }
+
+  _updateVentilationModeControl(
+    connected,
+    available,
+    boostActive,
+    currentOption,
+  ) {
+    const buttons = this.shadowRoot.querySelectorAll(
+      "[data-ventilation-mode-option]",
+    );
+    const ready = connected && available && !boostActive
+      && !this._fanLevelPending && !this._ventilationModePending;
+
+    buttons.forEach((button) => {
+      const active = button.dataset.ventilationModeOption === currentOption;
+      button.disabled = !ready;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+
+    const status = this._ventilationModePending
+      ? `${this._ventilationModeTarget} wird angefordert …`
+      : !connected
+        ? "Bridge nicht verbunden"
+        : !available
+          ? "Steuerung nicht verfügbar"
+          : boostActive
+            ? "Während Boost gesperrt"
+            : currentOption === "Manuell"
+              ? "Stufe bleibt dauerhaft aktiv"
+              : "Zeitpläne und Sensorregelung aktiv";
+
+    this._setText("ventilation-mode-control-status", status);
+  }
+
+  _clearVentilationModePending() {
+    if (this._ventilationModePendingTimeout !== undefined) {
+      clearTimeout(this._ventilationModePendingTimeout);
+    }
+
+    this._ventilationModePending = false;
+    this._ventilationModeTarget = undefined;
+    this._ventilationModePendingTimeout = undefined;
+  }
+
+  async _setVentilationMode(option) {
+    if (
+      !this._hass ||
+      this._ventilationModePending ||
+      this._fanLevelPending
+    ) {
+      return;
+    }
+
+    const entityId = this._entityId("ventilationModeControl");
+    const stateObject = entityId ? this._hass.states[entityId] : undefined;
+
+    if (
+      !entityId ||
+      !this._isValid(stateObject) ||
+      !["Automatik", "Manuell"].includes(option) ||
+      stateObject.state === option
+    ) {
+      return;
+    }
+
+    this._ventilationModePending = true;
+    this._ventilationModeTarget = option;
+    this._update();
+
+    try {
+      await this._hass.callService(
+        "select",
+        "select_option",
+        { entity_id: entityId, option },
+      );
+
+      if (this._ventilationModePending) {
+        this._ventilationModePendingTimeout = setTimeout(() => {
+          this._clearVentilationModePending();
+          this._update();
+        }, 15000);
+      }
+    } catch (error) {
+      console.error(
+        "GerlCraft Zehnder Card: Betriebsart konnte nicht geschaltet werden",
+        error,
+      );
+      this._clearVentilationModePending();
+      this._update();
+    }
+  }
+
   _updateRecovery(id, key) {
     const stateObject = this._state(key);
     const valid = this._isValid(stateObject);
@@ -516,6 +773,20 @@ class GerlCraftZehnderCard extends HTMLElement {
       event.preventDefault();
       event.stopPropagation();
       this._toggleBoost();
+      return;
+    }
+
+    if (actionTarget?.dataset.action === "set-fan-level") {
+      event.preventDefault();
+      event.stopPropagation();
+      this._setFanLevel(actionTarget.dataset.fanLevelOption);
+      return;
+    }
+
+    if (actionTarget?.dataset.action === "set-ventilation-mode") {
+      event.preventDefault();
+      event.stopPropagation();
+      this._setVentilationMode(actionTarget.dataset.ventilationModeOption);
       return;
     }
 
@@ -907,12 +1178,13 @@ class GerlCraftZehnderCard extends HTMLElement {
 
         .operation {
           display: grid;
-          grid-template-rows: auto 1fr;
+          grid-template-rows: repeat(4, auto);
           align-self: center;
-          align-content: stretch;
-          gap: 18px;
+          align-content: start;
+          gap: 14px;
           width: 100%;
-          height: clamp(480px, 54dvh, 580px);
+          height: auto;
+          min-height: clamp(580px, 64dvh, 660px);
           min-width: 0;
         }
 
@@ -967,6 +1239,94 @@ class GerlCraftZehnderCard extends HTMLElement {
         .metric-reading small { margin-left: 3px; color: var(--secondary-text-color); font-size: 10px; font-weight: 500; }
         .metric.unavailable .metric-reading { color: var(--disabled-text-color); }
         .metric.unavailable small { display: none; }
+
+        .fan-level-control {
+          display: grid;
+          gap: 10px;
+          padding: 13px 14px;
+          border: 1px solid var(--divider-color);
+          border-radius: 8px;
+          background: color-mix(in srgb, var(--primary-text-color) 2%, transparent);
+        }
+
+        .fan-level-control-head {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .fan-level-control-title {
+          color: var(--primary-text-color);
+          font-size: 12px;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
+        .fan-level-control-status {
+          color: var(--secondary-text-color);
+          font-size: 10px;
+          text-align: right;
+        }
+
+        .fan-level-options {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 6px;
+        }
+
+        .fan-level-option {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          min-width: 0;
+          min-height: 36px;
+          padding: 6px 5px;
+          overflow: hidden;
+          border: 1px solid var(--divider-color);
+          border-radius: 6px;
+          color: var(--secondary-text-color);
+          background: var(--ha-card-background, var(--card-background-color));
+          font: inherit;
+          font-size: 10px;
+          font-weight: 650;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: color .18s ease, border-color .18s ease, background .18s ease;
+        }
+
+        .fan-level-option ha-icon {
+          flex: 0 0 auto;
+          width: 17px;
+          height: 17px;
+          --mdc-icon-size: 17px;
+        }
+
+        .ventilation-mode-options {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .fan-level-option:hover:not(:disabled) {
+          color: var(--primary-text-color);
+          border-color: color-mix(in srgb, var(--card-accent) 52%, var(--divider-color));
+        }
+
+        .fan-level-option.active {
+          color: var(--card-accent);
+          border-color: color-mix(in srgb, var(--card-accent) 70%, var(--divider-color));
+          background: color-mix(in srgb, var(--card-accent) 12%, transparent);
+        }
+
+        .fan-level-option:disabled {
+          cursor: default;
+          opacity: .55;
+        }
+
+        .fan-level-option.active:disabled {
+          opacity: .82;
+        }
 
         .footer-grid {
           display: grid;
@@ -1066,6 +1426,13 @@ class GerlCraftZehnderCard extends HTMLElement {
           .boost-control { width: 62px; min-height: 28px; padding: 4px; }
           .boost-control span { display: none; }
           .boost-control-status { display: none; }
+          .fan-level-control-head {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 4px;
+          }
+          .fan-level-control-status { text-align: left; }
+          .fan-level-options { grid-template-columns: 1fr 1fr; }
           .metric-grid { grid-template-columns: 1fr 1fr; }
           .metric { min-height: 72px; padding: 10px 7px; }
           .metric-reading { font-size: 15px; }
@@ -1171,6 +1538,30 @@ class GerlCraftZehnderCard extends HTMLElement {
                 <button class="metric" data-key="ventilationPower"><ha-icon icon="mdi:flash"></ha-icon><span class="metric-label">Leistung</span><strong class="metric-reading"><span id="ventilation-power">–</span><small>W</small></strong></button>
                 <button class="metric" data-key="supplySpeed"><ha-icon icon="mdi:fan-chevron-up"></ha-icon><span class="metric-label">Zuluftdrehzahl</span><strong class="metric-reading"><span id="supply-speed">–</span><small>rpm</small></strong></button>
                 <button class="metric" data-key="extractSpeed"><ha-icon icon="mdi:fan-chevron-down"></ha-icon><span class="metric-label">Abluftdrehzahl</span><strong class="metric-reading"><span id="extract-speed">–</span><small>rpm</small></strong></button>
+              </div>
+
+              <div class="fan-level-control ventilation-mode-control">
+                <div class="fan-level-control-head">
+                  <span class="fan-level-control-title">Betriebsart</span>
+                  <span class="fan-level-control-status" id="ventilation-mode-control-status">Steuerung wird geladen</span>
+                </div>
+                <div class="fan-level-options ventilation-mode-options" role="group" aria-label="Betriebsart einstellen">
+                  <button class="fan-level-option" data-action="set-ventilation-mode" data-ventilation-mode-option="Automatik" type="button" disabled><ha-icon icon="mdi:auto-mode"></ha-icon><span>Automatik</span></button>
+                  <button class="fan-level-option" data-action="set-ventilation-mode" data-ventilation-mode-option="Manuell" type="button" disabled><ha-icon icon="mdi:hand-back-right-outline"></ha-icon><span>Manuell</span></button>
+                </div>
+              </div>
+
+              <div class="fan-level-control">
+                <div class="fan-level-control-head">
+                  <span class="fan-level-control-title">Lüfterstufe einstellen</span>
+                  <span class="fan-level-control-status" id="fan-level-control-status">Steuerung wird geladen</span>
+                </div>
+                <div class="fan-level-options" role="group" aria-label="Lüfterstufe einstellen">
+                  <button class="fan-level-option" data-action="set-fan-level" data-fan-level-option="Abwesend" type="button" disabled><ha-icon icon="mdi:home-export-outline"></ha-icon><span>Abwesend</span></button>
+                  <button class="fan-level-option" data-action="set-fan-level" data-fan-level-option="Niedrig" type="button" disabled><ha-icon icon="mdi:fan-speed-1"></ha-icon><span>Niedrig</span></button>
+                  <button class="fan-level-option" data-action="set-fan-level" data-fan-level-option="Mittel" type="button" disabled><ha-icon icon="mdi:fan-speed-2"></ha-icon><span>Mittel</span></button>
+                  <button class="fan-level-option" data-action="set-fan-level" data-fan-level-option="Hoch" type="button" disabled><ha-icon icon="mdi:fan-speed-3"></ha-icon><span>Hoch</span></button>
+                </div>
               </div>
             </aside>
           </div>

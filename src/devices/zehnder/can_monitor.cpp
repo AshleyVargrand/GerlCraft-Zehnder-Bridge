@@ -36,6 +36,24 @@ namespace
         0x85, 0x15, 0x01, 0x06
     };
 
+    constexpr uint8_t FAN_LEVEL_COMMAND_TEMPLATE[] = {
+        0x84, 0x15, 0x01, 0x01,
+        0x00, 0x00, 0x00, 0x00,
+        0x01, 0x00, 0x00, 0x00,
+        0x00
+    };
+
+    constexpr uint8_t AUTOMATIC_MODE_COMMAND[] = {
+        0x85, 0x15, 0x08, 0x01
+    };
+
+    constexpr uint8_t MANUAL_MODE_COMMAND[] = {
+        0x84, 0x15, 0x08, 0x01,
+        0x00, 0x00, 0x00, 0x00,
+        0x01, 0x00, 0x00, 0x00,
+        0x01
+    };
+
     constexpr uint32_t PDO_FAILURE_WARNING_MIN_REQUESTS = 100;
     constexpr uint32_t PDO_FAILURE_WARNING_PERCENT = 1;
 
@@ -527,6 +545,54 @@ namespace CanMonitor
             BOOST_END_COMMAND,
             sizeof(BOOST_END_COMMAND)
         );
+    }
+
+    bool setFanLevel(const uint8_t level)
+    {
+        if (level > 3)
+        {
+            Serial.printf(
+                "Luefterstufe %u abgelehnt: erlaubt sind 0 bis 3\n",
+                level
+            );
+            return false;
+        }
+
+        uint8_t command[sizeof(FAN_LEVEL_COMMAND_TEMPLATE)] {};
+        memcpy(
+            command,
+            FAN_LEVEL_COMMAND_TEMPLATE,
+            sizeof(command)
+        );
+        command[sizeof(command) - 1] = level;
+
+        Serial.printf(
+            "Zehnder Luefterstufe %u wird angefordert\n",
+            level
+        );
+
+        return sendRmiCommand(
+            command,
+            sizeof(command)
+        );
+    }
+
+    bool setVentilationMode(const bool manual)
+    {
+        Serial.printf(
+            "Zehnder Betriebsart %s wird angefordert\n",
+            manual ? "MANUELL" : "AUTOMATIK"
+        );
+
+        return manual
+            ? sendRmiCommand(
+                MANUAL_MODE_COMMAND,
+                sizeof(MANUAL_MODE_COMMAND)
+            )
+            : sendRmiCommand(
+                AUTOMATIC_MODE_COMMAND,
+                sizeof(AUTOMATIC_MODE_COMMAND)
+            );
     }
 
     uint32_t getPdoRequestsSent()

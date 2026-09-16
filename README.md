@@ -6,14 +6,18 @@ M5Stack AtomS3 Lite mit Atomic CAN Base, liest Betriebs-, Klima-, Energie- und
 Diagnosewerte ueber ComfoNet/CAN und stellt sie per Weboberflaeche, JSON-API
 und MQTT Discovery bereit.
 
-Version 1.1.1 bietet einen Browser-Installer, ein Setup-WLAN, eine geschuetzte
+Version 1.2.0 bietet einen Browser-Installer, ein Setup-WLAN, eine geschuetzte
 Web-Konfiguration, OTA-Updates sowie ein fertiges Home-Assistant-Paket mit
 eigener responsiver Anlagenkarte. Zusaetzlich kann ein zeitlich begrenzter
 60-Minuten-Boost ueber MQTT und Home Assistant gestartet oder vorzeitig
 beendet werden. Die verbleibende Party-Timer-Zeit wird als eigener
 Home-Assistant-Sensor bereitgestellt. Fuer einen Shelly BLU H&T ZB liegt ein
-Node-RED-Flow fuer den automatischen Bad-Boost bei. Andere Steuerbefehle
-bleiben gesperrt.
+Node-RED-Flow fuer den automatischen Bad-Boost bei. Zusaetzlich kann die
+normale Luefterstufe in Home Assistant zwischen Abwesend, Niedrig, Mittel und
+Hoch gewaehlt werden. Die Auswahl wird erst nach der Rueckmeldung der Zehnder
+als aktiv angezeigt. Ueber eine getrennte Auswahl kann zwischen dem
+zeitgesteuerten Automatikbetrieb und einem dauerhaften manuellen Betrieb
+gewechselt werden. Andere Steuerbefehle bleiben gesperrt.
 
 ## Installation
 
@@ -37,7 +41,7 @@ Kurzablauf:
 7. Bridge neu starten und erst danach spannungsfrei mit dem ComfoNet
    verbinden.
 
-## Funktionsumfang von v1.1.1
+## Funktionsumfang von v1.2.0
 
 - Getestet mit Zehnder ComfoAir Q350
 - CAN-Kommunikation mit M5Stack AtomS3 Lite und Atomic CAN Base
@@ -56,6 +60,9 @@ Kurzablauf:
 - Home-Assistant-Schalter fuer einen sicheren 60-Minuten-Boost
 - echte Boost-Restzeit aus der Q350 als Home-Assistant-Sensor
 - MQTT-Booststeuerung mit fester Befehls-Whitelist
+- Home-Assistant-Auswahl fuer die Luefterstufen 0 bis 3
+- Home-Assistant-Auswahl fuer Automatik- und manuellen Dauerbetrieb
+- MQTT-Lueftersteuerung mit Wertepruefung und Rueckmeldung der Anlage
 - Node-RED-Flow fuer automatischen Bad-Boost mit Shelly BLU H&T ZB
 
 Q450 und Q600 sind noch nicht als verifiziert markiert.
@@ -212,9 +219,10 @@ Die Bridge erzeugt zusaetzlich folgende Werte:
 - Bridge-Gesundheit
 
 Alle Kennzahlen werden ausschliesslich aus gelesenen Daten berechnet. Als
-einziger schreibender Anlagenzugriff ist der zeitbegrenzte Boost freigegeben.
-Beliebige CAN- oder RMI-Kommandos koennen weder ueber MQTT noch ueber die
-Weboberflaeche gesendet werden.
+schreibende Anlagenzugriffe sind der zeitbegrenzte Boost, die Auswahl der
+Luefterstufen 0 bis 3 und das Umschalten zwischen Automatik und Manuell
+freigegeben. Beliebige CAN- oder RMI-Kommandos koennen weder ueber MQTT noch
+ueber die Weboberflaeche gesendet werden.
 
 ## Lizenz und Quellen
 

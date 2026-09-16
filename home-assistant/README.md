@@ -13,9 +13,26 @@ Sie bildet die Anlage als
 zusammenhaengende Ansicht ab, erkennt den Entity-Praefix automatisch und
 benoetigt keine weitere HACS-Karte.
 
+Ab Firmware v1.2.0 stellt MQTT Discovery zusaetzlich die Auswahl
+`Luefterstufe einstellen` bereit. Beide Custom Cards koennen damit zwischen
+Abwesend, Niedrig, Mittel und Hoch umschalten und markieren erst die von der
+Zehnder zurueckgemeldete Stufe als aktiv. Die zweite Auswahl `Betriebsart
+einstellen` schaltet zwischen dem zeitbegrenzten Automatikbetrieb und einer
+dauerhaften manuellen Stufe. Beide Karten stellen Modus und Stufen mit Icons
+und Text dar.
+
 ## Varianten
 
-### `custom-card/gerlcraft-zehnder-card.js` (empfohlen)
+### `custom-card/zehnder_card_v145_final.js` (empfohlen)
+
+- grosse Signature-Anlagenansicht fuer Tablet und Wanddisplay
+- animierte Luftstroeme und zentraler Waermetauscher
+- direkte Bedienung von Boost und Luefterstufe
+- getrennte Bedienung von Automatik und manuellem Dauerbetrieb
+- grosszuegige Live-Werte und gut sichtbare Statushinweise
+- fertige Einzelansicht in `view-signature-card.yaml`
+
+### `custom-card/gerlcraft-zehnder-card.js`
 
 - eigenstaendige, responsive Anlagenvisualisierung
 - animierte Luftstroeme, Ventilator und Bypass-Stellung
@@ -23,12 +40,14 @@ benoetigt keine weitere HACS-Karte.
 - erkennt den Entity-Praefix automatisch
 - startet und beendet den 60-Minuten-Boost direkt unter der Bypass-Anzeige
 - zeigt die von der Q350 gemeldete Boost-Restzeit an
+- bietet eine abgesicherte Auswahl der Luefterstufen 0 bis 3
 - zeigt nicht verfuegbare Messwerte ohne Fehlerkarte an
 - benoetigt keine weitere HACS-Karte
 
-Die vollstaendige Einrichtung steht in
-[`custom-card/INSTALLATION.md`](custom-card/INSTALLATION.md). Die vorbereitete
-Seite fuer ein bestehendes Dashboard liegt in `view-custom-card.yaml`.
+Die vollstaendige Einrichtung beider Karten steht in
+[`custom-card/INSTALLATION.md`](custom-card/INSTALLATION.md). Die vorbereiteten
+Seiten fuer ein bestehendes Dashboard liegen in `view-signature-card.yaml`
+und `view-custom-card.yaml`.
 
 ![Vorschau der GerlCraft Zehnder Card](custom-card/gerlcraft-zehnder-card-preview.png)
 
@@ -78,6 +97,13 @@ von Node-RED.
 - benoetigt die Karte `button-card` aus HACS
 
 Die animierte Variante ist fuer `button-card` 7.0 oder neuer erstellt.
+
+### `view-signature-card.yaml` und `view-custom-card.yaml`
+
+- fuegen die grosse Signature Card oder die klassische Card als einzelne,
+  vollbreite Seite zu einem bestehenden Dashboard hinzu
+- enthalten ab den Card-Versionen 1.5.0 beziehungsweise 1.1.0 die direkte
+  Auswahl der normalen Luefterstufe
 
 ### `view-native.yaml` und `view-animated.yaml`
 

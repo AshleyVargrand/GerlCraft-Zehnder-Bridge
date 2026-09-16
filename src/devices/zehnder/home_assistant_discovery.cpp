@@ -121,6 +121,68 @@ namespace
         json += "\"{{ 'ON' if value_json.operating_mode == 6 else 'OFF' }}\"";
         json += "}";
     }
+
+    void appendFanLevelSelect(
+        String& json,
+        bool& firstComponent
+    )
+    {
+        if (!firstComponent)
+        {
+            json += ",";
+        }
+
+        firstComponent = false;
+
+        json += "\"fan_level_control\":{";
+        json += "\"platform\":\"select\",";
+        json += "\"unique_id\":\"gerlcraft_zehnder_fan_level_control\",";
+        json += "\"name\":\"Lüfterstufe einstellen\",";
+        json += "\"icon\":\"mdi:fan-speed-2\",";
+        json += "\"options\":[";
+        json += "\"Abwesend\",\"Niedrig\",\"Mittel\",\"Hoch\"";
+        json += "],";
+        json += "\"command_topic\":\"";
+        json += AppConfig::MQTT_FAN_LEVEL_COMMAND_TOPIC;
+        json += "\",";
+        json += "\"command_template\":";
+        json += "\"{% set m={'Abwesend':'0','Niedrig':'1','Mittel':'2','Hoch':'3'} %}{{ m[value] }}\",";
+        json += "\"value_template\":";
+        json += "\"{% set v=value_json.fan_level %}"
+            "{{ 'Abwesend' if v==0 else 'Niedrig' if v==1 else "
+            "'Mittel' if v==2 else 'Hoch' if v==3 else none }}\"";
+        json += "}";
+    }
+
+    void appendVentilationModeSelect(
+        String& json,
+        bool& firstComponent
+    )
+    {
+        if (!firstComponent)
+        {
+            json += ",";
+        }
+
+        firstComponent = false;
+
+        json += "\"ventilation_mode_control\":{";
+        json += "\"platform\":\"select\",";
+        json += "\"unique_id\":\"gerlcraft_zehnder_ventilation_mode_control\",";
+        json += "\"name\":\"Betriebsart einstellen\",";
+        json += "\"icon\":\"mdi:auto-mode\",";
+        json += "\"options\":[\"Automatik\",\"Manuell\"],";
+        json += "\"command_topic\":\"";
+        json += AppConfig::MQTT_VENTILATION_MODE_COMMAND_TOPIC;
+        json += "\",";
+        json += "\"command_template\":";
+        json += "\"{{ 'manual' if value == 'Manuell' else 'auto' }}\",";
+        json += "\"value_template\":";
+        json += "\"{% set v=value_json.operating_mode %}"
+            "{{ 'Automatik' if v==255 or v==1 else "
+            "'Manuell' if v==5 else none }}\"";
+        json += "}";
+    }
 }
 
 namespace ZehnderHomeAssistantDiscovery
@@ -248,6 +310,16 @@ namespace ZehnderHomeAssistantDiscovery
             nullptr,
             nullptr,
             "mdi:fan"
+        );
+
+        appendVentilationModeSelect(
+            json,
+            first
+        );
+
+        appendFanLevelSelect(
+            json,
+            first
         );
 
         appendBoostSwitch(

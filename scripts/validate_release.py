@@ -36,11 +36,18 @@ def main():
         RELEASE_DIR / "home-assistant" / "view-native.yaml",
         RELEASE_DIR / "home-assistant" / "view-animated.yaml",
         RELEASE_DIR / "home-assistant" / "view-custom-card.yaml",
+        RELEASE_DIR / "home-assistant" / "view-signature-card.yaml",
         (
             RELEASE_DIR
             / "home-assistant"
             / "custom-card"
             / "gerlcraft-zehnder-card.js"
+        ),
+        (
+            RELEASE_DIR
+            / "home-assistant"
+            / "custom-card"
+            / "zehnder_card_v145_final.js"
         ),
         RELEASE_DIR / "home-assistant" / "custom-card" / "INSTALLATION.md",
         (
@@ -113,7 +120,9 @@ def main():
                 "home-assistant/view-native.yaml",
                 "home-assistant/view-animated.yaml",
                 "home-assistant/view-custom-card.yaml",
+                "home-assistant/view-signature-card.yaml",
                 "home-assistant/custom-card/gerlcraft-zehnder-card.js",
+                "home-assistant/custom-card/zehnder_card_v145_final.js",
                 "home-assistant/custom-card/INSTALLATION.md",
                 "home-assistant/node-red/zehnder-bad-feuchte-boost.json",
             ):
@@ -140,7 +149,9 @@ def main():
                 "view-native.yaml",
                 "view-animated.yaml",
                 "view-custom-card.yaml",
+                "view-signature-card.yaml",
                 "custom-card/gerlcraft-zehnder-card.js",
+                "custom-card/zehnder_card_v145_final.js",
                 "custom-card/INSTALLATION.md",
                 "node-red/zehnder-bad-feuchte-boost.json",
             ):
