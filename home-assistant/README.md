@@ -1,5 +1,19 @@
 # Home-Assistant-Dashboard
 
+> **MQTT ist Voraussetzung fuer alle Dashboards in diesem Paket.** Ein
+> laufender Broker, die MQTT-Integration in Home Assistant und die Verbindung
+> der Bridge mit demselben Broker muessen bereits eingerichtet sein.
+
+Vor dem Import unter `Einstellungen > Geraete & Dienste > MQTT` pruefen, ob
+das Zehnder-Geraet mit aktuellen Messwerten vorhanden ist. Die Karten nutzen
+diese Entitaeten; sie holen keine Daten direkt von der Bridge-IP und richten
+keinen Broker ein. Die Schritt-fuer-Schritt-Einrichtung steht in der
+[Installationsanleitung](https://github.com/AshleyVargrand/GerlCraft-Zehnder-Bridge/blob/main/docs/INSTALLATION.md#mqtt-vorbereiten).
+
+Aktueller Stand: Firmware **1.2.0**, Signature Card **1.5.2**, klassische Card
+**1.1.1**. Node-RED und ein Feuchtesensor sind fuer die normale Anzeige und
+manuelle Steuerung nicht erforderlich.
+
 Dieses Paket enthaelt fertige Dashboards und einzelne Ansichten fuer die
 Zehnder ComfoAir Bridge. Die nativen Dashboard-Varianten sind reine Anzeigen.
 Ab Firmware v1.1.0 wird der Boost-Schalter ueber MQTT Discovery angelegt; die
@@ -58,7 +72,7 @@ und `view-custom-card.yaml`.
   [`node-red/README.md`](node-red/README.md)
 - verwendet standardmaessig den Shelly-Sensor
   `sensor.shelly_blu_h_t_zb_luftfeuchtigkeit`
-- startet bei schnellem Feuchteanstieg oder einer hohen Absolutfeuchte
+- startet bei schnellem Feuchteanstieg oder hoher relativer Feuchte
 - ist beim Import absichtlich deaktiviert
 
 Ab Firmware v1.1.0 stellt MQTT Discovery dafuer den Home-Assistant-Schalter
@@ -134,9 +148,12 @@ Die animierte Variante ist fuer `button-card` 7.0 oder neuer erstellt.
 4. Im Drei-Punkte-Menue den `Raw-Konfigurationseditor` oeffnen.
 5. Den vorhandenen Inhalt vorsichtshalber sichern.
 6. Im YAML die vorhandene Zeile `views:` suchen.
-7. Den kompletten Inhalt von `view-native.yaml` oder `view-animated.yaml` am
-   Ende der bestehenden `views:`-Liste einfuegen. Die Einrueckung in den
-   Dateien ist bereits passend vorbereitet.
+7. Den kompletten Inhalt der gewuenschten `view-*.yaml` am Ende der bestehenden
+   `views:`-Liste einfuegen. Fuer die Custom Cards `view-signature-card.yaml`
+   oder `view-custom-card.yaml` verwenden und vorher die jeweilige
+   JavaScript-Ressource einrichten. Fuer native Karten `view-native.yaml`,
+   fuer die `button-card`-Variante `view-animated.yaml` verwenden. Die
+   Einrueckung in den Dateien ist bereits passend vorbereitet.
 8. Speichern. Im Dashboard erscheint der neue Reiter `Zehnder`.
 
 Nicht `dashboard-native.yaml` oder `dashboard-animated.yaml` in ein

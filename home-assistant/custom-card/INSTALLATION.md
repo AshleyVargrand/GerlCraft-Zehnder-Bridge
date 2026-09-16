@@ -9,6 +9,24 @@ ComfoAir Q. Es gibt zwei moegliche Kartentypen:
 - **Klassische Card v1.1.1**: kompaktere Anlagenkarte mit animierten
   Luftstroemen, Boost-Bedienung und den bisherigen Messwert-Kacheln.
 
+## Voraussetzung: MQTT zuerst einrichten
+
+**Ohne MQTT-Anbindung funktionieren weder die Messwerte noch die
+Steuerelemente dieser Karten.** Vor dem Kopieren der JavaScript-Datei:
+
+1. MQTT-Broker (z. B. Mosquitto) starten und die MQTT-Integration in Home
+   Assistant mit diesem Broker verbinden.
+2. In der Web-Konfiguration der Bridge denselben Broker mit LAN-IP, Port und
+   Zugangsdaten eintragen. Auf `/diagnostics` muss MQTT `Verbunden` anzeigen.
+3. In Home Assistant unter der MQTT-Integration das Zehnder-Geraet und seine
+   aktuellen Messwerte pruefen. Fuer alle Steuerungen Firmware **1.2.0**
+   verwenden.
+
+Die [MQTT-Einrichtung](https://github.com/AshleyVargrand/GerlCraft-Zehnder-Bridge/blob/main/docs/INSTALLATION.md#mqtt-vorbereiten)
+beschreibt diese Schritte im Detail. Die Karten verbinden sich nicht direkt
+mit der Bridge-IP. Nur eine Kartenressource oder YAML einzufuegen erzeugt
+keine Zehnder-Entitaeten. Node-RED und der Bad-Feuchtesensor sind optional.
+
 Beide Karten verwenden die von der Bridge per MQTT Discovery angelegten
 Home-Assistant-Entitaeten. Als schreibende Zugriffe sind der auf 60 Minuten
 begrenzte Boost und die normale Luefterstufenwahl 0 bis 3 freigegeben. Andere
@@ -53,8 +71,6 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
    ```yaml
    type: custom:gerlcraft-zehnder-card
    title: Zehnder ComfoAir Q
-   humidity_entity: sensor.shelly_blu_h_t_zb_luftfeuchtigkeit
-   humidity_warning_threshold: 65
    ```
 
 5. Speichern und den Browser einmal vollstaendig neu laden.
@@ -80,8 +96,6 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
    ```yaml
    type: custom:gerlcraft-zehnder-card-v14
    title: Zehnder ComfoAir Q
-   humidity_entity: sensor.shelly_blu_h_t_zb_luftfeuchtigkeit
-   humidity_warning_threshold: 65
    full_height: true
    ```
 
@@ -179,6 +193,10 @@ eine zeitbegrenzte Stufenwahl; Manuell behaelt die gewaehlte Stufe bei, bis
 wieder Automatik gewaehlt wird.
 
 ## Optionaler Feuchtesensor
+
+Die Grundeinrichtung oben funktioniert ohne Feuchtesensor. Nur bei einem
+vorhandenen Sensor die folgenden Einstellungen ergaenzen und dessen echte
+Entity-ID verwenden.
 
 Ein Feuchtesensor aus Home Assistant kann als zusaetzliches Statusfeld
 angezeigt werden. Fuer den Shelly BLU H&T ZB aus dem Node-RED-Beispiel ist

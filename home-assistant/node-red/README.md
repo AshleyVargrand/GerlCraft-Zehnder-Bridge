@@ -13,12 +13,19 @@ waehrend des Boosts nicht erreichbar sind.
 ## Voraussetzungen
 
 - GerlCraft Zehnder Bridge ab Firmware 1.1.0
-- MQTT-Integration in Home Assistant
+- Laufender MQTT-Broker, mit dem sowohl die Bridge als auch die
+  MQTT-Integration in Home Assistant verbunden sind
 - Zehnder-Boost-Schalter in Home Assistant, normalerweise
   `switch.zehnder_comfoair_q350_boost`
 - Node-RED mit Home-Assistant-Anbindung
 - Zigbee-Koordinator in Home Assistant, zum Beispiel ZHA oder Zigbee2MQTT
 - Shelly BLU H&T ZB als Badezimmer-Feuchtesensor
+
+MQTT ist auch dann fuer die Bridge erforderlich, wenn der Feuchtesensor ueber
+ZHA eingebunden wird. Node-RED schaltet die HA-Entitaet; deren Befehl erreicht
+die Bridge ueber MQTT. Fuer die manuelle Steuerung in den Custom Cards wird
+dieser Node-RED-Flow nicht benoetigt. Siehe
+[MQTT-Einrichtung](https://github.com/AshleyVargrand/GerlCraft-Zehnder-Bridge/blob/main/docs/INSTALLATION.md#mqtt-vorbereiten).
 
 ## Shelly BLU H&T ZB in Home Assistant einbinden
 

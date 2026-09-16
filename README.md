@@ -6,6 +6,22 @@ M5Stack AtomS3 Lite mit Atomic CAN Base, liest Betriebs-, Klima-, Energie- und
 Diagnosewerte ueber ComfoNet/CAN und stellt sie per Weboberflaeche, JSON-API
 und MQTT Discovery bereit.
 
+> **MQTT ist fuer Home Assistant zwingend erforderlich.** Du brauchst einen
+> laufenden MQTT-Broker (z. B. Mosquitto) und die MQTT-Integration in Home
+> Assistant. Bridge und Home Assistant muessen mit demselben Broker verbunden
+> sein. Nur die Firmware zu flashen oder die Dashboard-Karte zu installieren
+> reicht nicht aus.
+
+Die Bridge installiert keinen Broker. Die Custom Cards verwenden die
+Home-Assistant-Entitaeten aus MQTT Discovery und verbinden sich nicht direkt
+mit der IP-Adresse der Bridge. Ohne erreichbaren Broker bleiben die lokale
+Webanzeige und JSON-API nutzbar, aber es gibt keine aktuellen Bridge-Werte und
+keine Boost-, Luefterstufen- oder Betriebsartsteuerung in Home Assistant.
+
+**Zuerst [MQTT vorbereiten](docs/INSTALLATION.md#mqtt-vorbereiten), dann
+die Bridge einrichten und zuletzt das Dashboard hinzufuegen.** Node-RED und
+ein Bad-Feuchtesensor sind nur fuer die optionale Feuchteautomation notwendig.
+
 Version 1.2.0 bietet einen Browser-Installer, ein Setup-WLAN, eine geschuetzte
 Web-Konfiguration, OTA-Updates sowie ein fertiges Home-Assistant-Paket mit
 eigener responsiver Anlagenkarte. Zusaetzlich kann ein zeitlich begrenzter
@@ -31,15 +47,19 @@ geflasht werden. Dies ist der empfohlene Installationsweg fuer normale Nutzer.
 
 Kurzablauf:
 
-1. AtomS3 Lite mit einem USB-C-Datenkabel am Computer anschliessen.
-2. Browser-Installer in Chrome oder Edge oeffnen.
-3. AtomS3 verbinden und die Installation starten.
-4. Falls die Verbindung scheitert, die Taste etwa zwei Sekunden halten, bis
+1. MQTT-Broker starten, die MQTT-Integration in Home Assistant einrichten und
+   Broker-Adresse sowie Zugangsdaten bereithalten.
+2. AtomS3 Lite mit einem USB-C-Datenkabel am Computer anschliessen.
+3. Browser-Installer in Chrome oder Edge oeffnen.
+4. AtomS3 verbinden und die Installation starten.
+5. Falls die Verbindung scheitert, die Taste etwa zwei Sekunden halten, bis
    die interne LED gruen leuchtet, und die Installation wiederholen.
-5. Mit dem WLAN `Zehnder-Bridge-Setup` verbinden.
-6. `http://192.168.4.1` oeffnen und WLAN sowie MQTT eintragen.
-7. Bridge neu starten und erst danach spannungsfrei mit dem ComfoNet
+6. Mit dem WLAN `Zehnder-Bridge-Setup` verbinden.
+7. `http://192.168.4.1` oeffnen und WLAN sowie MQTT eintragen.
+8. Bridge neu starten und erst danach spannungsfrei mit dem ComfoNet
    verbinden.
+9. Auf der Bridge `MQTT: Verbunden` und in Home Assistant das Zehnder-Geraet
+   unter der MQTT-Integration pruefen. Erst danach das Dashboard installieren.
 
 ## Funktionsumfang von v1.2.0
 
@@ -153,9 +173,11 @@ Web-Konfiguration aendern.
 ## Home-Assistant-Dashboard
 
 Ein fertiges Dashboard liegt im Ordner [`home-assistant`](home-assistant/).
-Enthalten sind:
+Voraussetzung sind bereits vorhandene Zehnder-Entitaeten in der
+MQTT-Integration. Enthalten sind:
 
-- eine eigene responsive Anlagenkarte mit animierten Luftstroemen,
+- zwei eigene Anlagenkarten: Signature 1.5.2 und Klassisch 1.1.1, jeweils mit
+  animierten Luftstroemen und Steuerung,
 - eine native Variante ohne Zusatzkarten,
 - eine leicht animierte Variante mit `button-card`,
 - vorbereitete Einzelansichten zum Ergaenzen eines vorhandenen

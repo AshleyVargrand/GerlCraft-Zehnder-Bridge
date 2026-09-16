@@ -7,6 +7,82 @@ empfohlene Weg fuer neue Nutzer ist der Browser-Installer mit anschliessender
 Einrichtung ueber das Setup-WLAN. Visual Studio Code und PlatformIO werden nur
 fuer eigene Builds oder Entwickler-Updates benoetigt.
 
+Stand: **Firmware 1.2.0**, Signature Card **1.5.2**, klassische Card **1.1.1**.
+Firmware und Dashboard-Karten haben unterschiedliche Versionsnummern.
+
+> **Fuer Home Assistant, die Dashboards und deren Steuerung ist MQTT Pflicht.**
+> Erforderlich sind ein laufender MQTT-Broker und die MQTT-Integration in
+> Home Assistant. Beide sind getrennte Bestandteile. Bridge und Home Assistant
+> muessen denselben Broker verwenden. Flashen allein richtet MQTT nicht ein.
+
+Der Datenweg lautet:
+
+```text
+Zehnder <-> Bridge <-> MQTT-Broker <-> Home Assistant <-> Dashboard
+```
+
+Die lokale Weboberflaeche und JSON-API der Bridge funktionieren auch ohne
+erreichbaren MQTT-Broker. Die Custom Cards greifen jedoch auf die
+Home-Assistant-Entitaeten zu, nicht direkt auf die Bridge-IP. Node-RED und ein
+Feuchtesensor sind optional; sie werden fuer den automatischen Bad-Boost
+gebraucht, nicht fuer die manuelle Bedienung.
+
+## MQTT vorbereiten
+
+Bereits vorhandenen Broker weiterverwenden. Fuer die Bridge ist kein zweiter
+Broker erforderlich. Vor dem Flashen Broker-Adresse, Port und Zugangsdaten
+bereithalten.
+
+### Noch kein Broker vorhanden: Home Assistant OS
+
+1. In Home Assistant unter `Einstellungen > Apps` die App `Mosquitto broker`
+   installieren (in aelteren Versionen: `Add-ons`).
+2. Mosquitto starten und im Protokoll auf einen erfolgreichen Start achten.
+   Den automatischen Start aktivieren.
+3. Unter `Einstellungen > Personen > Benutzer` einen eigenen Benutzer,
+   beispielsweise `zehnder_mqtt`, mit Passwort anlegen. Falls der Reiter fehlt,
+   im eigenen Profil den erweiterten Modus aktivieren. `homeassistant` und
+   `addons` sind reservierte Benutzernamen.
+4. Unter `Einstellungen > Geraete & Dienste` die erkannte MQTT-Integration
+   einrichten. Falls sie nicht angeboten wird, `Integration hinzufuegen > MQTT`
+   waehlen und mit dem Broker verbinden. MQTT Discovery muss aktiviert sein.
+
+Die offizielle Mosquitto-App verlangt Benutzername und Passwort; anonyme
+Verbindungen sind dort nicht erlaubt.
+
+Bei Home Assistant Container einen separaten Broker, etwa Mosquitto in einem
+Container, verwenden. Anschliessend die MQTT-Integration damit verbinden.
+Die MQTT-Integration allein startet keinen Broker.
+
+Offizielle Anleitungen:
+[MQTT-Integration](https://www.home-assistant.io/integrations/mqtt/) und
+[Mosquitto-App](https://github.com/home-assistant/addons/blob/master/mosquitto/DOCS.md).
+
+### Welche Adresse kommt in die Bridge?
+
+Laeuft Mosquitto auf dem Home-Assistant-Rechner, wird dessen **LAN-IP** als
+Broker-Adresse in die Bridge eingetragen. Bei einem separaten Broker dessen
+LAN-IP verwenden. Beispielwerte, nicht unveraendert uebernehmen:
+
+| Feld in der Bridge | Beispiel |
+|---|---|
+| MQTT-Broker | `192.168.1.50` (Rechner mit Mosquitto) |
+| MQTT-Port | `1883` |
+| MQTT-Benutzername | `zehnder_mqtt` |
+| MQTT-Passwort | Passwort dieses MQTT-Benutzers |
+
+Nur IP oder Hostname eintragen, ohne `http://`, `mqtt://`, Port oder Pfad.
+Nicht die Bridge-IP und nicht den Home-Assistant-Webport `8123` verwenden.
+`localhost` wuerde auf der Bridge auf den Atom selbst zeigen. `core-mosquitto`
+ist ein interner Home-Assistant-Name und normalerweise vom Atom aus nicht
+erreichbar. Die aktuelle Firmware verwendet MQTT ueber TCP ohne TLS,
+ueblicherweise Port `1883`; ein TLS-Port wie `8883` funktioniert damit nicht.
+
+Das MQTT-Passwort ist nicht das Admin-/OTA-Passwort der Bridge. Home Assistant
+darf eigene Broker-Zugangsdaten verwenden; entscheidend ist derselbe Broker.
+Der vorbelegte Host `homeassistant.local` richtet weder Mosquitto noch einen
+MQTT-Benutzer automatisch ein.
+
 ## Unterstuetzte Hardware
 
 Getestet ist derzeit folgende Kombination:
@@ -73,7 +149,7 @@ vollstaendig erhalten.
   CAN-/RMI-Befehle bleiben gesperrt.
 - Anschlussbelegung und Kabelfarben immer an der eigenen Anlage pruefen.
 
-## 1. Software installieren
+## 1. Software installieren (nur eigene Builds)
 
 Auf dem Windows-PC werden benoetigt:
 
@@ -86,7 +162,9 @@ Nach der Installation Visual Studio Code einmal neu starten.
 
 ## 2. Projekt herunterladen und oeffnen
 
-Das aktuelle Release auf GitHub als ZIP herunterladen und entpacken. Danach
+Den Quellcode auf GitHub ueber `Code > Download ZIP` herunterladen oder das
+Repository klonen. Das fertige Firmware-/Dashboard-Paket ersetzt den
+Quellcode nicht. Danach
 in Visual Studio Code ueber `Datei > Ordner oeffnen` den entpackten
 Projektordner waehlen.
 
@@ -162,10 +240,10 @@ Folgende Angaben werden gespeichert:
 |---|---|
 | WLAN-Name | Name des Heim-WLANs |
 | WLAN-Passwort | Passwort des Heim-WLANs |
-| MQTT-Broker | IP-Adresse oder Hostname des MQTT-Brokers |
+| MQTT-Broker | Pflicht fuer Home Assistant: LAN-IP oder Hostname des laufenden Brokers, ohne Protokoll und Port |
 | MQTT-Port | Normalerweise `1883` |
-| MQTT-Benutzername | Falls der Broker eine Anmeldung verlangt |
-| MQTT-Passwort | Falls der Broker eine Anmeldung verlangt |
+| MQTT-Benutzername | Bei der Mosquitto-App erforderlich |
+| MQTT-Passwort | Passwort dieses Broker-Benutzers; bei der Mosquitto-App erforderlich |
 | Admin-/OTA-Passwort | Schutz der Konfigurationsseite und OTA-Updates |
 | Hostname | Lokaler Name ohne `.local`, z. B. `zehnder-bridge` |
 | DNS-Name | Optionaler, im Router eingerichteter lokaler DNS-Name |
@@ -230,7 +308,7 @@ Nach dem Start auf der Weboberflaeche pruefen:
 - CAN-Bus aktiv
 - Zehnder online
 - Empfangene Frames steigen
-- Fehlgeschlagene PDO-Anfragen bleiben bei `0`
+- PDO-Fehlerquote und Alter der letzten Antwort kontrollieren
 
 Die Diagnose ist erreichbar unter:
 
@@ -253,6 +331,14 @@ aktuelle Antworten der Zehnder-Anlage.
 
 Home Assistant benoetigt eine eingerichtete MQTT-Integration und muss
 denselben MQTT-Broker verwenden wie die Bridge.
+
+Die Einrichtung steht unter [MQTT vorbereiten](#mqtt-vorbereiten). Bevor das
+Dashboard installiert wird, diese drei Punkte pruefen:
+
+1. Auf der Bridge unter `/diagnostics` steht MQTT auf `Verbunden`.
+2. In Home Assistant ist die MQTT-Integration mit dem Broker verbunden.
+3. Unter dieser Integration erscheint das Zehnder-Geraet. Nach dem Anschluss
+   an die Anlage aktualisieren sich z. B. Temperatur und Luefterstufe.
 
 Nach erfolgreicher MQTT-Verbindung veroeffentlicht die Bridge automatisch
 ihre Home-Assistant-Discovery. Unter `Einstellungen > Geraete & Dienste >
@@ -279,9 +365,9 @@ Manuell   = Gewaehlte Stufe bleibt aktiv, bis wieder Automatik gewaehlt wird.
 
 Die Bridge akzeptiert nur diese vier Werte. Eine Auswahl wird waehrend eines
 aktiven Boosts abgelehnt. Home Assistant zeigt die neue Stufe erst dann als
-aktiv an, wenn sie von der Zehnder wieder im MQTT-Zustand gemeldet wurde. Die
-manuelle Stufe wird von der Anlagensteuerung nach ihrer vorgesehenen Laufzeit
-wieder durch den Automatikbetrieb abgeloest.
+aktiv an, wenn sie von der Zehnder wieder im MQTT-Zustand gemeldet wurde.
+Nur die zeitbegrenzte Stufenwahl im Automatikbetrieb laeuft aus. Bei
+`Manuell` muss fuer die Rueckkehr zur Automatik bewusst umgeschaltet werden.
 
 Fuer den ersten Funktionstest die Betriebsart auf `Automatik` belassen,
 zwischen `Niedrig` und `Mittel` wechseln und kontrollieren, ob sich die
@@ -293,6 +379,9 @@ Die bestehenden MQTT-Topics und Home-Assistant-Unique-IDs bleiben auch bei
 Updates unveraendert. Dadurch entstehen keine doppelten Entitaeten.
 
 ### Fertiges Dashboard installieren
+
+Erst fortfahren, wenn die Zehnder-Entitaeten in Home Assistant vorhanden sind.
+Das Dashboard erzeugt diese Entitaeten nicht und ersetzt keine MQTT-Anbindung.
 
 Auf der Browser-Installer-Seite steht ein Dashboard-Paket zum Download bereit:
 
@@ -474,9 +563,20 @@ Nach dem Neustart startet wieder das WLAN `Zehnder-Bridge-Setup`.
 
 ### Home Assistant erkennt das Geraet nicht
 
-- MQTT-Verbindung auf der Diagnose-Seite pruefen.
-- MQTT-Broker, Port und Zugangsdaten kontrollieren.
-- Sicherstellen, dass die MQTT-Integration in Home Assistant aktiv ist.
+| Beobachtung | Naechster Schritt |
+|---|---|
+| Weboberflaeche erreichbar, MQTT nicht verbunden | Broker starten; LAN-IP, Port `1883`, Benutzer und Passwort pruefen. WLAN allein reicht nicht. |
+| Mosquitto meldet einen Anmeldefehler | MQTT-Benutzer und Passwort pruefen; das Admin-/OTA-Passwort ist eine andere Anmeldung. |
+| Bridge zeigt MQTT verbunden, aber kein HA-Geraet | HA-MQTT-Integration, denselben Broker und aktivierte Discovery pruefen. Danach Bridge neu starten. |
+| Geraet vorhanden, Werte nicht verfuegbar | CAN-Status, Zehnder-Verbindung und Alter der letzten Antwort auf `/diagnostics` pruefen. |
+| Entitaeten vorhanden, Karte bleibt leer | Entity-IDs und Kartenressource pruefen; siehe Custom-Card-Anleitung. |
+| Messwerte vorhanden, neue Steuerungen fehlen | Firmware 1.2.0 und neue MQTT-Select-Entitaeten pruefen. Ein Kartenupdate allein aktualisiert die Firmware nicht. |
+
+Zur weiteren Diagnose in der MQTT-Integration auf
+`gerlcraft-hvac-bridge/zehnder/state` lauschen. Nach dem naechsten Publish
+soll ein JSON-Zustand ankommen. Die Discovery-Konfiguration liegt unter
+`homeassistant/device/gerlcraft_hvac_bridge_zehnder/config`. Die Bridge
+verwendet den Discovery-Praefix `homeassistant`.
 
 ### ComfoNet- oder Kabel-Fehler an der Zehnder
 

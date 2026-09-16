@@ -266,6 +266,16 @@
                 ohne erneutes Kompilieren ueber das Setup-WLAN eingerichtet.
             </p>
 
+            <p class="intro">
+                <strong>MQTT ist fuer Home Assistant und die Dashboard-Steuerung
+                zwingend erforderlich.</strong> Vorher einen MQTT-Broker
+                (z. B. Mosquitto) starten und die MQTT-Integration in Home
+                Assistant einrichten. Bridge und Home Assistant muessen
+                denselben Broker verwenden. Der Installer richtet keinen
+                Broker ein.
+                <a href="https://github.com/AshleyVargrand/GerlCraft-Zehnder-Bridge/blob/main/docs/INSTALLATION.md#mqtt-vorbereiten">MQTT Schritt fuer Schritt einrichten</a>
+            </p>
+
             <esp-web-install-button manifest="manifest.json">
                 <button class="install-button" slot="activate">
                     AtomS3 verbinden und installieren
@@ -291,8 +301,12 @@
             <p>
                 Fertige Uebersicht mit Temperaturen, Luftstroemen,
                 Rueckgewinnung, Energie, Filterstatus und Verlauf. Das Paket
-                enthaelt ausserdem die eigene responsive GerlCraft-Anlagenkarte
-                mit animierten Luftstroemen fuer vorhandene Dashboards.
+                enthaelt die Signature Card und die klassische GerlCraft-Karte
+                mit animierten Luftstroemen, Boost, Luefterstufen und
+                Automatik/Manuell fuer vorhandene Dashboards.
+                Die Zehnder-Entitaeten muessen zuvor ueber MQTT in Home
+                Assistant vorhanden sein. Das Dashboard verbindet sich nicht
+                direkt mit der Bridge-IP.
             </p>
             <a
                 class="download-button"
@@ -312,6 +326,8 @@
         <section class="steps">
             <h2>Vor der Installation</h2>
             <ol>
+                <li>MQTT-Broker und Home-Assistant-MQTT-Integration einrichten;
+                    Broker-Adresse und Zugangsdaten bereithalten.</li>
                 <li>Chrome oder Edge auf einem Computer verwenden.</li>
                 <li>Den AtomS3 mit einem USB-C-Datenkabel anschliessen.</li>
                 <li>Serielle Monitore und PlatformIO vorher schliessen.</li>
@@ -331,6 +347,10 @@
                 <li>Das WLAN-Passwort <code>zehnder-setup</code> verwenden.</li>
                 <li><code>http://192.168.4.1</code> im Browser oeffnen.</li>
                 <li>WLAN, MQTT und ein eigenes Admin-Passwort eintragen.</li>
+                <li>Speichern und die Bridge neu starten. In der Diagnose
+                    <code>MQTT: Verbunden</code> pruefen.</li>
+                <li>Das Zehnder-Geraet unter der MQTT-Integration in Home
+                    Assistant pruefen, danach das Dashboard einrichten.</li>
             </ol>
         </section>
     </main>
