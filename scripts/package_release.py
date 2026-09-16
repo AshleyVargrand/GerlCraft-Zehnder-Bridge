@@ -1,6 +1,7 @@
 Import("env")
 
 import hashlib
+from html import escape
 import json
 import os
 from pathlib import Path
@@ -274,9 +275,14 @@ def build_release(source, target, env):
         encoding="utf-8",
     )
 
-    shutil.copy2(
-        PROJECT_DIR / "web-installer" / "index.html",
-        site_dir / "index.html",
+    installer_template = (
+        PROJECT_DIR / "web-installer" / "index.html"
+    ).read_text(encoding="utf-8")
+    if installer_template.count("{{FIRMWARE_VERSION}}") != 1:
+        raise RuntimeError("Installer muss genau einen Versionsplatzhalter enthalten")
+    (site_dir / "index.html").write_text(
+        installer_template.replace("{{FIRMWARE_VERSION}}", escape(version)),
+        encoding="utf-8",
     )
 
     dashboard_archive = package_dashboard(site_dir, release_dir)

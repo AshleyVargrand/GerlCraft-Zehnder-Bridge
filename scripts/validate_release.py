@@ -1,5 +1,6 @@
 from pathlib import Path
 import hashlib
+from html import escape
 import json
 import sys
 import zipfile
@@ -67,6 +68,18 @@ def main():
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     build_info = json.loads(build_info_path.read_text(encoding="utf-8"))
+    version = manifest.get("version")
+    installer_html = (SITE_DIR / "index.html").read_text(encoding="utf-8")
+    if not isinstance(version, str) or not version:
+        errors.append("Firmwareversion im Manifest fehlt")
+    else:
+        if build_info.get("version") != version:
+            errors.append("Versionsangaben in Manifest und Build-Info stimmen nicht ueberein")
+        expected_label = f'<span class="version">Version {escape(version)}</span>'
+        if expected_label not in installer_html:
+            errors.append("Sichtbare Installer-Version stimmt nicht mit der Firmware ueberein")
+    if "{{FIRMWARE_VERSION}}" in installer_html:
+        errors.append("Versionsplatzhalter im Installer wurde nicht ersetzt")
     builds = manifest.get("builds", [])
 
     if len(builds) != 1 or builds[0].get("chipFamily") != "ESP32-S3":
