@@ -254,7 +254,6 @@ Der Projektcode steht unter der GNU General Public License Version 3
 - [Projektlizenz](LICENSE)
 - [Credits und Protokollquellen](CREDITS.md)
 - [Drittanbieterhinweise](THIRD_PARTY_NOTICES.md)
-- [Lizenz- und Quellen-Audit fuer v0.9.7](docs/LICENSE_AUDIT.md)
 - [Browser-Installer fuer Maintainer](docs/BROWSER_INSTALLER.md)
 - [Release-Checkliste](docs/RELEASE_CHECKLIST.md)
 
