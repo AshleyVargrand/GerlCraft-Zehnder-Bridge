@@ -3,10 +3,10 @@
 Dieses Verzeichnis enthaelt die Home-Assistant-Custom-Card fuer die Zehnder
 ComfoAir Q. Es gibt zwei moegliche Kartentypen:
 
-- **Signature Card v1.5.2**: grosse Anlagenansicht mit ruhigem
+- **Signature Card v1.5.3**: grosse Anlagenansicht mit ruhigem
   Waermetauscher-Luefter, groesseren Live-Werten, Boost-Bedienung und
   verstaendlicher Filterwarnung.
-- **Klassische Card v1.1.1**: kompaktere Anlagenkarte mit animierten
+- **Klassische Card v1.1.2**: kompaktere Anlagenkarte mit animierten
   Luftstroemen, Boost-Bedienung und den bisherigen Messwert-Kacheln.
 
 ## Voraussetzung: MQTT zuerst einrichten
@@ -39,7 +39,7 @@ Automatik oder auf einen dauerhaften manuellen Betrieb gesetzt werden.
 
 ## Welche Variante soll ich nehmen?
 
-Fuer ein neues Dashboard wird die **Signature Card v1.5.2** empfohlen.
+Fuer ein neues Dashboard wird die **Signature Card v1.5.3** empfohlen.
 Sie ist besser fuer grosse Tablet- oder Wanddisplay-Ansichten lesbar und zeigt
 die Filterwarnung direkt verstaendlich an.
 
@@ -63,7 +63,7 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 3. Eine JavaScript-Modulressource hinzufuegen:
 
    ```text
-   /local/gerlcraft-zehnder-card.js?v=1.1.1
+   /local/gerlcraft-zehnder-card.js?v=1.1.2
    ```
 
 4. Die Karte im Dashboard so einbinden:
@@ -75,7 +75,7 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 
 5. Speichern und den Browser einmal vollstaendig neu laden.
 
-## Installation: Signature Card v1.5.2
+## Installation: Signature Card v1.5.3
 
 1. Die Signature-JavaScript-Datei nach Home Assistant kopieren:
 
@@ -88,7 +88,7 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 3. Eine JavaScript-Modulressource hinzufuegen:
 
    ```text
-   /local/zehnder_card_v145_final.js?v=1.5.2
+   /local/zehnder_card_v145_final.js?v=1.5.3
    ```
 
 4. Die Karte im Dashboard so einbinden:
@@ -122,6 +122,32 @@ type: custom:gerlcraft-zehnder-card-v14
 
 Die Signature-Seite erscheint als Reiter `Zehnder` unter dem URL-Pfad
 `zehnder-signature`. Die klassische Ansicht verwendet `zehnder-card`.
+
+## Luftfeuchtigkeit in den Luftstroemen
+
+Signature Card **1.5.3** und klassische Card **1.1.2** zeigen unter jeder
+Temperatur die relative Luftfeuchtigkeit mit Tropfensymbol: Aussenluft,
+Zuluft, Abluft und Fortluft. Die Werte kommen direkt von den vorhandenen
+Zehnder-MQTT-Sensoren. Ein Firmware-Update ist dafuer nicht notwendig.
+Ein Klick auf den Feuchtewert oeffnet den Verlauf des jeweiligen Sensors.
+Fehlende oder ungueltige Werte werden als `- %` dargestellt.
+
+Zum Aktualisieren die jeweilige JavaScript-Datei in `/config/www/` ersetzen,
+die Versionsnummer in der Ressourcen-URL wie oben anpassen und den Browser
+vollstaendig neu laden. Kartentyp und vorhandene Dashboard-Konfiguration
+bleiben gleich.
+
+Bei abweichenden Entity-IDs koennen die vier Sensoren zugeordnet werden:
+
+```yaml
+entities:
+  outdoorHumidity: sensor.zehnder_comfoair_q350_aussenluftfeuchtigkeit
+  supplyHumidity: sensor.zehnder_comfoair_q350_zuluftfeuchtigkeit
+  extractHumidity: sensor.zehnder_comfoair_q350_abluftfeuchtigkeit
+  exhaustHumidity: sensor.zehnder_comfoair_q350_fortluftfeuchtigkeit
+```
+
+Der optionale Bad-Sensor (`humidity_entity`) bleibt davon unabhaengig.
 
 ## Alternative Entity-Praefixe
 

@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.5.2";
+const CARD_VERSION = "1.5.3";
 const CARD_TYPE = "gerlcraft-zehnder-card-v14";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
@@ -61,6 +61,10 @@ const ENTITY_DEFINITIONS = {
     domain: "sensor",
     suffixes: ["fortlufttemperatur"],
   },
+  outdoorHumidity: { domain: "sensor", suffixes: ["aussenluftfeuchtigkeit"] },
+  supplyHumidity: { domain: "sensor", suffixes: ["zuluftfeuchtigkeit"] },
+  extractHumidity: { domain: "sensor", suffixes: ["abluftfeuchtigkeit"] },
+  exhaustHumidity: { domain: "sensor", suffixes: ["fortluftfeuchtigkeit"] },
 
   supplyFlow: {
     domain: "sensor",
@@ -348,6 +352,20 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
       `${this._prefix}_` +
       `${definition.suffixes[0]}`
     );
+  }
+
+  _updateAirHumidity() {
+    for (const air of ["outdoor", "supply", "extract", "exhaust"]) {
+      const key = `${air}Humidity`;
+      const value = this._rawNumber(key);
+      const available = Number.isFinite(value) && value >= 0 && value <= 100;
+      this._setText(`${air}-humidity`, available ? this._value(key) : "-");
+      const button = this.shadowRoot.getElementById(`${air}-humidity`).closest("button");
+      button.classList.toggle("unavailable", !available);
+      button.title = available
+        ? "Relative Luftfeuchtigkeit – Verlauf anzeigen"
+        : "Relative Luftfeuchtigkeit nicht verfügbar";
+    }
   }
 
   _state(key) {
@@ -838,6 +856,8 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
         1,
       ),
     );
+
+    this._updateAirHumidity();
 
     this._setText(
       "humidity",
@@ -2009,6 +2029,8 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
           opacity: .09;
         }
 
+        .flow-svg-mobile { display: none; }
+
         .flow-edge {
           fill: none;
           stroke-width: 2;
@@ -2040,7 +2062,7 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
           align-content: center;
           gap: 5px;
           width: 138px;
-          height: 118px;
+          height: 146px;
           padding: 12px 10px;
           border: 1px solid color-mix(in srgb, currentColor 22%, var(--divider-color));
           border-radius: 22px;
@@ -2076,27 +2098,59 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
           font-size: 10px;
         }
 
+        .node-humidity {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          padding: 2px 4px;
+          border: 0;
+          border-radius: 6px;
+          background: transparent;
+          color: inherit;
+          font: inherit;
+          font-size: 15px;
+          font-weight: 600;
+          line-height: 1.2;
+          white-space: nowrap;
+          cursor: pointer;
+        }
+
+        .node .node-humidity ha-icon {
+          width: 16px;
+          height: 16px;
+          --mdc-icon-size: 16px;
+        }
+
+        .node-humidity:hover,
+        .node-humidity:focus-visible {
+          background: color-mix(in srgb, currentColor 12%, transparent);
+          outline: 1px solid currentColor;
+        }
+
+        .node-humidity.unavailable { color: var(--secondary-text-color); }
+
         .outdoor {
           left: 8px;
-          top: calc(26% - 59px);
+          top: calc(26% - 73px);
           color: var(--gc-cold);
         }
 
         .supply {
           right: 8px;
-          top: calc(26% - 59px);
+          top: calc(26% - 73px);
           color: var(--gc-cold);
         }
 
         .exhaust {
           left: 8px;
-          top: calc(74% - 59px);
+          top: calc(74% - 73px);
           color: var(--gc-hot);
         }
 
         .extract {
           right: 8px;
-          top: calc(74% - 59px);
+          top: calc(74% - 73px);
           color: var(--gc-warm);
         }
 
@@ -2729,8 +2783,8 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
 
           .node {
             width: 92px;
-            height: 92px;
-            min-height: 92px;
+            height: 112px;
+            min-height: 112px;
             padding: 8px 5px;
             border-radius: 18px;
           }
@@ -2749,6 +2803,8 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
             font-size: 16px;
           }
 
+          .node-humidity { font-size: 12px; }
+
           .node-hint {
             display: none;
           }
@@ -2765,12 +2821,12 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
 
           .outdoor,
           .supply {
-            top: calc(26% - 46px);
+            top: calc(26% - 56px);
           }
 
           .exhaust,
           .extract {
-            top: calc(74% - 46px);
+            top: calc(74% - 56px);
           }
 
           .core {
@@ -2881,6 +2937,12 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
         }
 
         @media (max-width: 500px) {
+          .airspace { min-height: 690px; }
+          .flow-svg { display: none; }
+          .flow-svg-mobile { display: block; }
+          .outdoor, .supply { top: 0; }
+          .exhaust, .extract { top: auto; bottom: 0; }
+
           h2 {
             font-size: 19px;
           }
@@ -3091,6 +3153,21 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
                   <path class="flow-motion flow-hot forward" d="M405 315 C325 382 270 385 150 385"></path>
                 </svg>
 
+                <svg class="flow-svg flow-svg-mobile" viewBox="0 0 1000 520" preserveAspectRatio="none" aria-hidden="true">
+                  <path class="flow-base flow-cold" d="M150 70 C150 115 270 145 405 180"></path>
+                  <path class="flow-edge flow-cold" d="M150 70 C150 115 270 145 405 180"></path>
+                  <path class="flow-motion flow-cold forward" d="M150 70 C150 115 270 145 405 180"></path>
+                  <path class="flow-base flow-cold" d="M595 180 C730 145 850 115 850 70"></path>
+                  <path class="flow-edge flow-cold" d="M595 180 C730 145 850 115 850 70"></path>
+                  <path class="flow-motion flow-cold forward" d="M595 180 C730 145 850 115 850 70"></path>
+                  <path class="flow-base flow-warm" d="M850 450 C850 405 730 375 595 340"></path>
+                  <path class="flow-edge flow-warm" d="M850 450 C850 405 730 375 595 340"></path>
+                  <path class="flow-motion flow-warm forward" d="M850 450 C850 405 730 375 595 340"></path>
+                  <path class="flow-base flow-hot" d="M405 340 C270 375 150 405 150 450"></path>
+                  <path class="flow-edge flow-hot" d="M405 340 C270 375 150 405 150 450"></path>
+                  <path class="flow-motion flow-hot forward" d="M405 340 C270 375 150 405 150 450"></path>
+                </svg>
+
                 <div
                   class="node outdoor"
                   data-key="outdoorTemperature"
@@ -3100,6 +3177,9 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
                   <strong class="node-value">
                     <span id="outdoor-temperature">–</span> °C
                   </strong>
+                  <button type="button" class="node-humidity" data-key="outdoorHumidity" aria-label="Außenluftfeuchtigkeit">
+                    <ha-icon icon="mdi:water-percent" aria-hidden="true"></ha-icon><span><span id="outdoor-humidity">-</span> %</span>
+                  </button>
                   <span class="node-hint">von außen</span>
                 </div>
 
@@ -3112,6 +3192,9 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
                   <strong class="node-value">
                     <span id="supply-temperature">–</span> °C
                   </strong>
+                  <button type="button" class="node-humidity" data-key="supplyHumidity" aria-label="Zuluftfeuchtigkeit">
+                    <ha-icon icon="mdi:water-percent" aria-hidden="true"></ha-icon><span><span id="supply-humidity">-</span> %</span>
+                  </button>
                   <span class="node-hint">ins Gebäude</span>
                 </div>
 
@@ -3124,6 +3207,9 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
                   <strong class="node-value">
                     <span id="exhaust-temperature">–</span> °C
                   </strong>
+                  <button type="button" class="node-humidity" data-key="exhaustHumidity" aria-label="Fortluftfeuchtigkeit">
+                    <ha-icon icon="mdi:water-percent" aria-hidden="true"></ha-icon><span><span id="exhaust-humidity">-</span> %</span>
+                  </button>
                   <span class="node-hint">nach außen</span>
                 </div>
 
@@ -3136,6 +3222,9 @@ class GerlCraftZehnderCardV14 extends HTMLElement {
                   <strong class="node-value">
                     <span id="extract-temperature">–</span> °C
                   </strong>
+                  <button type="button" class="node-humidity" data-key="extractHumidity" aria-label="Abluftfeuchtigkeit">
+                    <ha-icon icon="mdi:water-percent" aria-hidden="true"></ha-icon><span><span id="extract-humidity">-</span> %</span>
+                  </button>
                   <span class="node-hint">aus dem Gebäude</span>
                 </div>
 

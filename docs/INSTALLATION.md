@@ -7,7 +7,7 @@ empfohlene Weg fuer neue Nutzer ist der Browser-Installer mit anschliessender
 Einrichtung ueber das Setup-WLAN. Visual Studio Code und PlatformIO werden nur
 fuer eigene Builds oder Entwickler-Updates benoetigt.
 
-Stand: **Firmware 1.2.0**, Signature Card **1.5.2**, klassische Card **1.1.1**.
+Stand: **Firmware 1.2.0**, Signature Card **1.5.3**, klassische Card **1.1.2**.
 Firmware und Dashboard-Karten haben unterschiedliche Versionsnummern.
 
 > **Fuer Home Assistant, die Dashboards und deren Steuerung ist MQTT Pflicht.**

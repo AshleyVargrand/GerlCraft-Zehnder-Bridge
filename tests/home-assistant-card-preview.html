@@ -29,6 +29,7 @@
   <gerlcraft-zehnder-card></gerlcraft-zehnder-card>
   <script type="module">
     import "../home-assistant/custom-card/gerlcraft-zehnder-card.js";
+    import "../home-assistant/custom-card/zehnder_card_v145_final.js";
 
     const prefix = "zehnder_comfoair_q350";
     const states = {};
@@ -52,6 +53,10 @@
     set("sensor", "zulufttemperatur", "21.2");
     set("sensor", "ablufttemperatur", "26.8");
     set("sensor", "fortlufttemperatur", "26.0");
+    set("sensor", "aussenluftfeuchtigkeit", "78");
+    set("sensor", "zuluftfeuchtigkeit", "42");
+    set("sensor", "abluftfeuchtigkeit", "56");
+    set("sensor", "fortluftfeuchtigkeit", "89");
     set("sensor", "zuluftvolumenstrom", "227");
     set("sensor", "abluftvolumenstrom", "227");
     set("sensor", "volumenstrom_abweichung", "0.0");
@@ -63,8 +68,12 @@
     set("sensor", "luftungsenergie_laufendes_jahr", "153");
     set("sensor", "eingesparte_heizenergie_gesamt", "1413");
 
-    await customElements.whenDefined("gerlcraft-zehnder-card");
-    const card = document.querySelector("gerlcraft-zehnder-card");
+    const cardType = new URLSearchParams(location.search).has("signature")
+      ? "gerlcraft-zehnder-card-v14"
+      : "gerlcraft-zehnder-card";
+    await customElements.whenDefined(cardType);
+    const card = document.createElement(cardType);
+    document.querySelector("gerlcraft-zehnder-card").replaceWith(card);
     card.setConfig({ title: "Zehnder ComfoAir Q350" });
     card.hass = { states, locale: { language: "de-DE" } };
   </script>

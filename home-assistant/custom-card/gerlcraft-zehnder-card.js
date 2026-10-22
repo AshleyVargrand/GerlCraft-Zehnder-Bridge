@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.1.1";
+const CARD_VERSION = "1.1.2";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -57,6 +57,10 @@ const ENTITY_DEFINITIONS = {
     domain: "sensor",
     suffixes: ["fortlufttemperatur"],
   },
+  outdoorHumidity: { domain: "sensor", suffixes: ["aussenluftfeuchtigkeit"] },
+  supplyHumidity: { domain: "sensor", suffixes: ["zuluftfeuchtigkeit"] },
+  extractHumidity: { domain: "sensor", suffixes: ["abluftfeuchtigkeit"] },
+  exhaustHumidity: { domain: "sensor", suffixes: ["fortluftfeuchtigkeit"] },
   supplyFlow: { domain: "sensor", suffixes: ["zuluftvolumenstrom"] },
   extractFlow: { domain: "sensor", suffixes: ["abluftvolumenstrom"] },
   airflowDeviation: {
@@ -260,6 +264,20 @@ class GerlCraftZehnderCard extends HTMLElement {
     return `${definition.domain}.${this._prefix}_${definition.suffixes[0]}`;
   }
 
+  _updateAirHumidity() {
+    for (const air of ["outdoor", "supply", "extract", "exhaust"]) {
+      const key = `${air}Humidity`;
+      const value = this._rawNumber(key);
+      const available = Number.isFinite(value) && value >= 0 && value <= 100;
+      this._setText(`${air}-humidity`, available ? this._value(key) : "-");
+      const button = this.shadowRoot.getElementById(`${air}-humidity`).closest("button");
+      button.classList.toggle("unavailable", !available);
+      button.title = available
+        ? "Relative Luftfeuchtigkeit – Verlauf anzeigen"
+        : "Relative Luftfeuchtigkeit nicht verfügbar";
+    }
+  }
+
   _state(key) {
     const entityId = this._entityId(key);
     return entityId ? this._hass?.states?.[entityId] : undefined;
@@ -399,6 +417,7 @@ class GerlCraftZehnderCard extends HTMLElement {
     this._setText("supply-temperature", this._value("supplyTemperature", 1));
     this._setText("extract-temperature", this._value("extractTemperature", 1));
     this._setText("exhaust-temperature", this._value("exhaustTemperature", 1));
+    this._updateAirHumidity();
 
     this._setMetric("supply-flow", "supplyFlow");
     this._setMetric("extract-flow", "extractFlow");
@@ -988,6 +1007,29 @@ class GerlCraftZehnderCard extends HTMLElement {
         .air-node .node-label { color: var(--secondary-text-color); font-size: 13px; }
         .air-node .node-value { font-size: 24px; font-weight: 650; white-space: nowrap; }
         .air-node .unit { color: var(--secondary-text-color); font-size: 11px; }
+        .node-humidity {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          padding: 2px 4px;
+          border: 0;
+          border-radius: 6px;
+          background: transparent;
+          color: inherit;
+          font: inherit;
+          font-size: 14px;
+          font-weight: 600;
+          line-height: 1.2;
+          white-space: nowrap;
+          cursor: pointer;
+        }
+        .air-node .node-humidity ha-icon { width: 16px; height: 16px; --mdc-icon-size: 16px; }
+        .node-humidity:hover, .node-humidity:focus-visible {
+          background: color-mix(in srgb, currentColor 12%, transparent);
+          outline: 1px solid currentColor;
+        }
+        .node-humidity.unavailable { color: var(--secondary-text-color); }
         .outdoor { grid-area: outdoor; }
         .supply { grid-area: supply; }
         .extract { grid-area: extract; }
@@ -1411,6 +1453,7 @@ class GerlCraftZehnderCard extends HTMLElement {
           }
           .air-node { padding: 8px 1px; }
           .air-node .node-value { font-size: 14px; }
+          .node-humidity { font-size: 11px; gap: 2px; }
           .air-node .node-label { font-size: 9px; }
           .air-node .unit { display: none; }
           .unit-core { gap: 7px; min-height: 210px; padding: 12px 4px; }
@@ -1484,6 +1527,9 @@ class GerlCraftZehnderCard extends HTMLElement {
                   <ha-icon icon="mdi:weather-windy"></ha-icon>
                   <span class="node-label">Außenluft</span>
                   <strong class="node-value"><span id="outdoor-temperature">–</span> °C</strong>
+                  <button type="button" class="node-humidity" data-key="outdoorHumidity" aria-label="Außenluftfeuchtigkeit">
+                    <ha-icon icon="mdi:water-percent" aria-hidden="true"></ha-icon><span><span id="outdoor-humidity">-</span> %</span>
+                  </button>
                   <span class="unit">von außen</span>
                 </div>
                 <div class="duct intake"><span></span><span></span><span></span></div>
@@ -1504,12 +1550,18 @@ class GerlCraftZehnderCard extends HTMLElement {
                   <ha-icon icon="mdi:home-import-outline"></ha-icon>
                   <span class="node-label">Zuluft</span>
                   <strong class="node-value"><span id="supply-temperature">–</span> °C</strong>
+                  <button type="button" class="node-humidity" data-key="supplyHumidity" aria-label="Zuluftfeuchtigkeit">
+                    <ha-icon icon="mdi:water-percent" aria-hidden="true"></ha-icon><span><span id="supply-humidity">-</span> %</span>
+                  </button>
                   <span class="unit">ins Gebäude</span>
                 </div>
                 <div class="air-node exhaust" data-key="exhaustTemperature">
                   <ha-icon icon="mdi:thermometer-chevron-down"></ha-icon>
                   <span class="node-label">Fortluft</span>
                   <strong class="node-value"><span id="exhaust-temperature">–</span> °C</strong>
+                  <button type="button" class="node-humidity" data-key="exhaustHumidity" aria-label="Fortluftfeuchtigkeit">
+                    <ha-icon icon="mdi:water-percent" aria-hidden="true"></ha-icon><span><span id="exhaust-humidity">-</span> %</span>
+                  </button>
                   <span class="unit">nach außen</span>
                 </div>
                 <div class="duct exhaust-duct reverse"><span></span><span></span><span></span></div>
@@ -1518,6 +1570,9 @@ class GerlCraftZehnderCard extends HTMLElement {
                   <ha-icon icon="mdi:home-export-outline"></ha-icon>
                   <span class="node-label">Abluft</span>
                   <strong class="node-value"><span id="extract-temperature">–</span> °C</strong>
+                  <button type="button" class="node-humidity" data-key="extractHumidity" aria-label="Abluftfeuchtigkeit">
+                    <ha-icon icon="mdi:water-percent" aria-hidden="true"></ha-icon><span><span id="extract-humidity">-</span> %</span>
+                  </button>
                   <span class="unit">aus dem Gebäude</span>
                 </div>
               </div>

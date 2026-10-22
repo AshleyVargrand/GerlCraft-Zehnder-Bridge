@@ -176,7 +176,7 @@ Ein fertiges Dashboard liegt im Ordner [`home-assistant`](home-assistant/).
 Voraussetzung sind bereits vorhandene Zehnder-Entitaeten in der
 MQTT-Integration. Enthalten sind:
 
-- zwei eigene Anlagenkarten: Signature 1.5.2 und Klassisch 1.1.1, jeweils mit
+- zwei eigene Anlagenkarten: Signature 1.5.3 und Klassisch 1.1.2, jeweils mit
   animierten Luftstroemen und Steuerung,
 - eine native Variante ohne Zusatzkarten,
 - eine leicht animierte Variante mit `button-card`,
