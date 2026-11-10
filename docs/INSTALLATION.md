@@ -7,7 +7,7 @@ empfohlene Weg fuer neue Nutzer ist der Browser-Installer mit anschliessender
 Einrichtung ueber das Setup-WLAN. Visual Studio Code und PlatformIO werden nur
 fuer eigene Builds oder Entwickler-Updates benoetigt.
 
-Stand: **Firmware 1.2.0**, Signature Card **1.5.3**, klassische Card **1.1.2**.
+Stand: **Firmware 1.2.0**, Signature Card **1.5.5**, klassische Card **1.1.2**.
 Firmware und Dashboard-Karten haben unterschiedliche Versionsnummern.
 
 > **Fuer Home Assistant, die Dashboards und deren Steuerung ist MQTT Pflicht.**
@@ -144,8 +144,8 @@ vollstaendig erhalten.
 - Keinen zusaetzlichen 120-Ohm-Abschlusswiderstand an einer Stichleitung
   montieren.
 - Die Firmware sendet PDO-Leseanfragen. Freigegeben sind ausschliesslich der
-  zeitlich begrenzte 60-Minuten-Boost samt vorzeitigem Beenden und ab v1.2.0
-  die normalen Luefterstufen 0 bis 3 sowie Automatik/Manuell. Beliebige
+  zeitlich begrenzte 60-Minuten-Boost samt vorzeitigem Beenden, die
+  Luefterstufen 0 bis 3, Automatik, Manuell und Dauer-Standby. Beliebige
   CAN-/RMI-Befehle bleiben gesperrt.
 - Anschlussbelegung und Kabelfarben immer an der eigenen Anlage pruefen.
 
@@ -354,14 +354,22 @@ Mittel    (2)
 Hoch      (3)
 ```
 
-Die zweite Auswahl `Betriebsart einstellen` legt fest, wie lange die Stufe
-gelten soll:
+Die zweite Auswahl `Betriebsart einstellen` bestimmt den Lüftungsbetrieb.
+Ab Firmware v1.3.0 bietet sie auch `Standby`.
 
 ```text
 Automatik = Stufenwahl ist zeitbegrenzt; die Anlagenautomatik uebernimmt
             nach etwa zwei Stunden wieder.
 Manuell   = Gewaehlte Stufe bleibt aktiv, bis wieder Automatik gewaehlt wird.
+Standby   = Beide Lüfter laufen aus und bleiben bis zum Beenden stehen.
 ```
+
+Standby lässt sich bei inaktivem Boost über die Betriebsart oder über den
+separaten Schalter `Standby` starten. Die Wahl von `Automatik` oder `Manuell`
+beendet den Standby und setzt anschließend die gewählte Betriebsart. Über
+`Aus` am separaten Schalter lässt sich der Standby ebenfalls beenden. Die
+Anzeige folgt der Rückmeldung der Anlage. Beim Test an der Q350 meldeten
+beide Lüfter nach rund 25 Sekunden 0 U/min.
 
 Die Bridge akzeptiert nur diese vier Werte. Eine Auswahl wird waehrend eines
 aktiven Boosts abgelehnt. Home Assistant zeigt die neue Stufe erst dann als
@@ -570,7 +578,7 @@ Nach dem Neustart startet wieder das WLAN `Zehnder-Bridge-Setup`.
 | Bridge zeigt MQTT verbunden, aber kein HA-Geraet | HA-MQTT-Integration, denselben Broker und aktivierte Discovery pruefen. Danach Bridge neu starten. |
 | Geraet vorhanden, Werte nicht verfuegbar | CAN-Status, Zehnder-Verbindung und Alter der letzten Antwort auf `/diagnostics` pruefen. |
 | Entitaeten vorhanden, Karte bleibt leer | Entity-IDs und Kartenressource pruefen; siehe Custom-Card-Anleitung. |
-| Messwerte vorhanden, neue Steuerungen fehlen | Firmware 1.2.0 und neue MQTT-Select-Entitaeten pruefen. Ein Kartenupdate allein aktualisiert die Firmware nicht. |
+| Messwerte vorhanden, neue Steuerungen fehlen | Firmwareversion und MQTT-Select-Entitaeten pruefen. Standby erfordert Firmware 1.3.0. Ein Kartenupdate allein aktualisiert die Firmware nicht. |
 
 Zur weiteren Diagnose in der MQTT-Integration auf
 `gerlcraft-hvac-bridge/zehnder/state` lauschen. Nach dem naechsten Publish

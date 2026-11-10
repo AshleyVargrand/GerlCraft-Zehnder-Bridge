@@ -10,7 +10,7 @@ diese Entitaeten; sie holen keine Daten direkt von der Bridge-IP und richten
 keinen Broker ein. Die Schritt-fuer-Schritt-Einrichtung steht in der
 [Installationsanleitung](https://github.com/AshleyVargrand/GerlCraft-Zehnder-Bridge/blob/main/docs/INSTALLATION.md#mqtt-vorbereiten).
 
-Aktueller Stand: Firmware **1.2.0**, Signature Card **1.5.3**, klassische Card
+Aktueller Stand: Firmware **1.2.0**, Signature Card **1.5.5**, klassische Card
 **1.1.2**. Node-RED und ein Feuchtesensor sind fuer die normale Anzeige und
 manuelle Steuerung nicht erforderlich.
 
@@ -31,9 +31,10 @@ Ab Firmware v1.2.0 stellt MQTT Discovery zusaetzlich die Auswahl
 `Luefterstufe einstellen` bereit. Beide Custom Cards koennen damit zwischen
 Abwesend, Niedrig, Mittel und Hoch umschalten und markieren erst die von der
 Zehnder zurueckgemeldete Stufe als aktiv. Die zweite Auswahl `Betriebsart
-einstellen` schaltet zwischen dem zeitbegrenzten Automatikbetrieb und einer
-dauerhaften manuellen Stufe. Beide Karten stellen Modus und Stufen mit Icons
-und Text dar.
+einstellen` bietet ab Firmware v1.3.0 Automatik, Manuell und Standby. Bei
+Standby stehen beide Lüfter nach dem Auslaufen. Automatik oder Manuell beendet
+den Standby und setzt die gewählte Betriebsart. Beide Karten zeigen den von
+der Anlage gemeldeten Zustand mit Icons und Text an.
 
 ## Varianten
 
@@ -42,7 +43,7 @@ und Text dar.
 - grosse Signature-Anlagenansicht fuer Tablet und Wanddisplay
 - animierte Luftstroeme und zentraler Waermetauscher
 - direkte Bedienung von Boost und Luefterstufe
-- getrennte Bedienung von Automatik und manuellem Dauerbetrieb
+- Betriebsart mit Automatik, Manuell und Standby
 - grosszuegige Live-Werte und gut sichtbare Statushinweise
 - fertige Einzelansicht in `view-signature-card.yaml`
 

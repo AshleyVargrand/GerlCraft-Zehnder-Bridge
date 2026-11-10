@@ -1,4 +1,4 @@
-const CARD_VERSION = "1.1.2";
+const CARD_VERSION = "1.1.3";
 const DEFAULT_PREFIX = "zehnder_comfoair_q350";
 
 const ENTITY_DEFINITIONS = {
@@ -585,7 +585,7 @@ class GerlCraftZehnderCard extends HTMLElement {
     currentMode,
   ) {
     const buttons = this.shadowRoot.querySelectorAll("[data-fan-level-option]");
-    const ready = connected && available && !boostActive
+    const ready = connected && available && !boostActive && currentMode !== "Standby"
       && !this._ventilationModePending && !this._fanLevelPending;
 
     buttons.forEach((button) => {
@@ -605,7 +605,9 @@ class GerlCraftZehnderCard extends HTMLElement {
             ? "Während Boost gesperrt"
             : this._ventilationModePending
               ? "Betriebsart wird umgestellt"
-              : currentMode === "Manuell"
+              : currentMode === "Standby"
+                  ? "Lüftung ist in Standby"
+                  : currentMode === "Manuell"
                 ? "Dauerhaft, bis Automatik gewählt wird"
                 : "Zeitbegrenzt, Automatik wieder nach ca. 2 Stunden";
 
@@ -682,12 +684,20 @@ class GerlCraftZehnderCard extends HTMLElement {
     const buttons = this.shadowRoot.querySelectorAll(
       "[data-ventilation-mode-option]",
     );
-    const ready = connected && available && !boostActive
+    const modeEntity = this._entityId("ventilationModeControl");
+    const options = this._hass?.states?.[modeEntity]?.attributes?.options;
+    const hasStandby = Array.isArray(options) && options.includes("Standby");
+    this.shadowRoot.querySelector(".ventilation-mode-options")
+      ?.classList.toggle("has-standby", hasStandby);
+
+    const ready = connected && available && (!boostActive || currentOption === "Standby")
       && !this._fanLevelPending && !this._ventilationModePending;
 
     buttons.forEach((button) => {
       const active = button.dataset.ventilationModeOption === currentOption;
-      button.disabled = !ready;
+      const isStandbyButton = button.dataset.ventilationModeOption === "Standby";
+      button.hidden = isStandbyButton && !hasStandby;
+      button.disabled = !ready || (boostActive && isStandbyButton);
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", String(active));
     });
@@ -698,7 +708,9 @@ class GerlCraftZehnderCard extends HTMLElement {
         ? "Bridge nicht verbunden"
         : !available
           ? "Steuerung nicht verfügbar"
-          : boostActive
+          : currentOption === "Standby"
+            ? "Lüftung pausiert bis Automatik oder Manuell gewählt wird"
+            : boostActive
             ? "Während Boost gesperrt"
             : currentOption === "Manuell"
               ? "Stufe bleibt dauerhaft aktiv"
@@ -732,7 +744,7 @@ class GerlCraftZehnderCard extends HTMLElement {
     if (
       !entityId ||
       !this._isValid(stateObject) ||
-      !["Automatik", "Manuell"].includes(option) ||
+      !stateObject.attributes?.options?.includes(option) ||
       stateObject.state === option
     ) {
       return;
@@ -753,7 +765,7 @@ class GerlCraftZehnderCard extends HTMLElement {
         this._ventilationModePendingTimeout = setTimeout(() => {
           this._clearVentilationModePending();
           this._update();
-        }, 15000);
+        }, stateObject.state === "Standby" ? 30000 : 15000);
       }
     } catch (error) {
       console.error(
@@ -1350,6 +1362,14 @@ class GerlCraftZehnderCard extends HTMLElement {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
+        .ventilation-mode-options.has-standby {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .ventilation-mode-options .fan-level-option[hidden] {
+          display: none;
+        }
+
         .fan-level-option:hover:not(:disabled) {
           color: var(--primary-text-color);
           border-color: color-mix(in srgb, var(--card-accent) 52%, var(--divider-color));
@@ -1603,6 +1623,7 @@ class GerlCraftZehnderCard extends HTMLElement {
                 <div class="fan-level-options ventilation-mode-options" role="group" aria-label="Betriebsart einstellen">
                   <button class="fan-level-option" data-action="set-ventilation-mode" data-ventilation-mode-option="Automatik" type="button" disabled><ha-icon icon="mdi:auto-mode"></ha-icon><span>Automatik</span></button>
                   <button class="fan-level-option" data-action="set-ventilation-mode" data-ventilation-mode-option="Manuell" type="button" disabled><ha-icon icon="mdi:hand-back-right-outline"></ha-icon><span>Manuell</span></button>
+                  <button class="fan-level-option" data-action="set-ventilation-mode" data-ventilation-mode-option="Standby" type="button" hidden disabled><ha-icon icon="mdi:fan-off"></ha-icon><span>Standby</span></button>
                 </div>
               </div>
 

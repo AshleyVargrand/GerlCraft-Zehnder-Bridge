@@ -7,10 +7,15 @@ class WebServer;
 
 namespace ActiveDevice
 {
+    enum class StandbyState { Unknown, Off, On };
+
     void begin();
     void update();
 
     bool setBoost(bool active);
+    bool setStandby(bool active);
+    bool isStandbyTransitionPending();
+    StandbyState getStandbyState();
     bool setFanLevel(uint8_t level);
     bool setVentilationMode(bool manual);
 

@@ -122,6 +122,36 @@ namespace
         json += "}";
     }
 
+    void appendStandbySwitch(
+        String& json,
+        bool& firstComponent
+    )
+    {
+        if (!firstComponent)
+        {
+            json += ",";
+        }
+
+        firstComponent = false;
+
+        json += "\"standby\":{";
+        json += "\"platform\":\"switch\",";
+        json += "\"unique_id\":\"gerlcraft_zehnder_standby\",";
+        json += "\"name\":\"Standby\",";
+        json += "\"icon\":\"mdi:fan-off\",";
+        json += "\"command_topic\":\"";
+        json += AppConfig::MQTT_STANDBY_COMMAND_TOPIC;
+        json += "\",";
+        json += "\"state_topic\":\"";
+        json += AppConfig::MQTT_STANDBY_STATE_TOPIC;
+        json += "\",";
+        json += "\"payload_on\":\"ON\",";
+        json += "\"payload_off\":\"OFF\",";
+        json += "\"optimistic\":false,";
+        json += "\"retain\":false";
+        json += "}";
+    }
+
     void appendFanLevelSelect(
         String& json,
         bool& firstComponent
@@ -171,16 +201,17 @@ namespace
         json += "\"unique_id\":\"gerlcraft_zehnder_ventilation_mode_control\",";
         json += "\"name\":\"Betriebsart einstellen\",";
         json += "\"icon\":\"mdi:auto-mode\",";
-        json += "\"options\":[\"Automatik\",\"Manuell\"],";
+        json += "\"options\":[\"Automatik\",\"Manuell\",\"Standby\"],";
         json += "\"command_topic\":\"";
         json += AppConfig::MQTT_VENTILATION_MODE_COMMAND_TOPIC;
         json += "\",";
         json += "\"command_template\":";
-        json += "\"{{ 'manual' if value == 'Manuell' else 'auto' }}\",";
+        json += "\"{% set m={'Automatik':'auto','Manuell':'manual','Standby':'standby'} %}{{ m[value] }}\",";
         json += "\"value_template\":";
-        json += "\"{% set v=value_json.operating_mode %}"
-            "{{ 'Automatik' if v==255 or v==1 else "
-            "'Manuell' if v==5 else none }}\"";
+        json += "\"{% set s=value_json.standby_active | default(none) %}"
+            "{% set v=value_json.operating_mode %}"
+            "{{ 'Standby' if s==true else none if s is none else "
+            "'Automatik' if v==255 or v==1 else 'Manuell' if v==5 else none }}\"";
         json += "}";
     }
 }
@@ -326,6 +357,8 @@ namespace ZehnderHomeAssistantDiscovery
             json,
             first
         );
+
+        appendStandbySwitch(json, first);
 
         appendComponent(
             json,

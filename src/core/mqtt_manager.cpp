@@ -4,6 +4,8 @@
 #include <ESP32MQTTClient.h>
 #include <WiFi.h>
 #include <esp_idf_version.h>
+#include <atomic>
+#include <cstring>
 
 #include "core/app_config.h"
 #include "core/config_manager.h"
@@ -30,22 +32,35 @@ namespace
     volatile bool homeAssistantBirthPending = false;
     volatile uint8_t pendingBoostCommand = 0;
     volatile int8_t pendingFanLevelCommand = -1;
-    volatile int8_t pendingVentilationModeCommand = -1;
+
+    enum class VentilationCommand { None, Automatic, Manual, StandbyOn, StandbyOff };
+    std::atomic<VentilationCommand> pendingVentilationCommand {VentilationCommand::None};
 
     bool discoveryPublishPending = false;
     uint32_t discoveryPublishNotBeforeAt = 0;
 
     bool availabilityPublished = false;
     bool lastPublishedOnlineState = false;
+    bool standbyStatePublished = false;
+    ActiveDevice::StandbyState lastPublishedStandbyState = ActiveDevice::StandbyState::Unknown;
 
     uint32_t lastStatePublishedAt = 0;
     uint32_t lastControlCommandAt = 0;
     uint32_t publishCount = 0;
 
+    bool isModeSelection(const VentilationCommand command)
+    {
+        return command == VentilationCommand::Automatic || command == VentilationCommand::Manual;
+    }
+
     void queueBoostCommand(const bool active)
     {
         pendingFanLevelCommand = -1;
-        pendingVentilationModeCommand = -1;
+        VentilationCommand command = pendingVentilationCommand.load();
+        if (isModeSelection(command))
+        {
+            pendingVentilationCommand.compare_exchange_strong(command, VentilationCommand::None);
+        }
         pendingBoostCommand = active ? 1 : 2;
     }
 
@@ -53,7 +68,7 @@ namespace
     {
         if (
             pendingBoostCommand != 0
-            || pendingVentilationModeCommand >= 0
+            || pendingVentilationCommand.load() != VentilationCommand::None
         )
         {
             return;
@@ -62,15 +77,15 @@ namespace
         pendingFanLevelCommand = static_cast<int8_t>(level);
     }
 
-    void queueVentilationModeCommand(const bool manual)
+    void queueVentilationCommand(const VentilationCommand command)
     {
-        if (pendingBoostCommand != 0)
+        if (isModeSelection(command) && pendingBoostCommand != 0)
         {
             return;
         }
 
         pendingFanLevelCommand = -1;
-        pendingVentilationModeCommand = manual ? 1 : 0;
+        pendingVentilationCommand.store(command);
     }
 
     void markConnected()
@@ -105,6 +120,64 @@ namespace
         }
 
         return result;
+    }
+
+    void publishStandbyState()
+    {
+        using State = ActiveDevice::StandbyState;
+        const State state = ActiveDevice::getStandbyState();
+        if (standbyStatePublished && state == lastPublishedStandbyState)
+        {
+            return;
+        }
+
+        const char* payload = "None";
+        if (state == State::On)
+        {
+            payload = "ON";
+        }
+        else if (state == State::Off)
+        {
+            payload = "OFF";
+        }
+
+        if (mqttClient.publish(AppConfig::MQTT_STANDBY_STATE_TOPIC, payload, 0, true))
+        {
+            standbyStatePublished = true;
+            lastPublishedStandbyState = state;
+            lastStatePublishedAt = 0;
+        }
+    }
+
+    template <size_t Size>
+    bool matchesTopic(esp_mqtt_event_handle_t event, const char (&topic)[Size])
+    {
+        return event->topic && event->topic_len == static_cast<int>(Size - 1)
+            && std::memcmp(event->topic, topic, Size - 1) == 0;
+    }
+
+    void dispatchMqttEvent(esp_mqtt_event_handle_t event)
+    {
+        if (mqttClient.isMyTurn(event->client))
+        {
+            if (event->event_id == MQTT_EVENT_DISCONNECTED)
+            {
+                pendingVentilationCommand.store(VentilationCommand::None);
+            }
+            else if (
+                event->event_id == MQTT_EVENT_DATA
+                && (event->retain || event->current_data_offset != 0
+                    || event->data_len != event->total_data_len)
+                && (matchesTopic(event, AppConfig::MQTT_STANDBY_COMMAND_TOPIC)
+                    || matchesTopic(event, AppConfig::MQTT_VENTILATION_MODE_COMMAND_TOPIC))
+            )
+            {
+                // Replays and partial packets must not start or end Standby.
+                return;
+            }
+        }
+
+        mqttClient.onEventCallback(event);
     }
 
     bool publishState()
@@ -199,6 +272,22 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
     );
 
     mqttClient.subscribe(
+        AppConfig::MQTT_STANDBY_COMMAND_TOPIC,
+        [](const std::string& payload)
+        {
+            if (payload == "ON")
+            {
+                queueVentilationCommand(VentilationCommand::StandbyOn);
+            }
+            else if (payload == "OFF")
+            {
+                queueVentilationCommand(VentilationCommand::StandbyOff);
+            }
+        },
+        0
+    );
+
+    mqttClient.subscribe(
         AppConfig::MQTT_FAN_LEVEL_COMMAND_TOPIC,
         [](const std::string& payload)
         {
@@ -228,13 +317,19 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
         {
             if (payload == "auto")
             {
-                queueVentilationModeCommand(false);
+                queueVentilationCommand(VentilationCommand::Automatic);
                 return;
             }
 
             if (payload == "manual")
             {
-                queueVentilationModeCommand(true);
+                queueVentilationCommand(VentilationCommand::Manual);
+                return;
+            }
+
+            if (payload == "standby")
+            {
+                queueVentilationCommand(VentilationCommand::StandbyOn);
                 return;
             }
 
@@ -251,7 +346,7 @@ void onMqttConnect(esp_mqtt_client_handle_t client)
 
 esp_err_t handleMQTT(esp_mqtt_event_handle_t event)
 {
-    mqttClient.onEventCallback(event);
+    dispatchMqttEvent(event);
     return ESP_OK;
 }
 
@@ -271,7 +366,7 @@ void handleMQTT(
     auto* event =
         static_cast<esp_mqtt_event_handle_t>(eventData);
 
-    mqttClient.onEventCallback(event);
+    dispatchMqttEvent(event);
 }
 
 #endif
@@ -396,6 +491,7 @@ namespace MqttManager
             connectionEventPending = false;
 
             availabilityPublished = false;
+            standbyStatePublished = false;
             lastStatePublishedAt = 0;
 
             discoveryPublishPending = true;
@@ -425,12 +521,43 @@ namespace MqttManager
             || currentTime - lastControlCommandAt
                 >= CONTROL_COMMAND_INTERVAL_MS;
 
-        if (controlCommandAllowed && pendingBoostCommand != 0)
+        const VentilationCommand command = controlCommandAllowed
+            ? pendingVentilationCommand.exchange(VentilationCommand::None)
+            : VentilationCommand::None;
+        const bool regularControlAllowed =
+            controlCommandAllowed && !ActiveDevice::isStandbyTransitionPending();
+
+        if (isModeSelection(command))
+        {
+            lastControlCommandAt = currentTime;
+            const bool manual = command == VentilationCommand::Manual;
+            const bool success = ActiveDevice::setVentilationMode(manual);
+            Serial.printf(
+                "MQTT Betriebsart %s: %s\n",
+                manual ? "MANUELL" : "AUTOMATIK",
+                success ? "angefordert" : "abgelehnt"
+            );
+            if (success)
+            {
+                lastStatePublishedAt = 0;
+            }
+        }
+        else if (command != VentilationCommand::None)
+        {
+            lastControlCommandAt = currentTime;
+            const bool start = command == VentilationCommand::StandbyOn;
+            const bool success = ActiveDevice::setStandby(start);
+            Serial.printf(
+                "MQTT Standby %s: %s\n",
+                start ? "EIN" : "AUS",
+                success ? "angefordert" : "abgelehnt"
+            );
+        }
+        else if (regularControlAllowed && pendingBoostCommand != 0)
         {
             const uint8_t command = pendingBoostCommand;
             pendingBoostCommand = 0;
             pendingFanLevelCommand = -1;
-            pendingVentilationModeCommand = -1;
             lastControlCommandAt = currentTime;
 
             const bool success = ActiveDevice::setBoost(
@@ -449,31 +576,7 @@ namespace MqttManager
             }
         }
 
-        else if (
-            controlCommandAllowed
-            && pendingVentilationModeCommand >= 0
-        )
-        {
-            const bool manual =
-                pendingVentilationModeCommand == 1;
-            pendingVentilationModeCommand = -1;
-            lastControlCommandAt = currentTime;
-
-            const bool success =
-                ActiveDevice::setVentilationMode(manual);
-
-            Serial.printf(
-                "MQTT Betriebsart %s: %s\n",
-                manual ? "MANUELL" : "AUTOMATIK",
-                success ? "gesendet" : "abgelehnt"
-            );
-
-            if (success)
-            {
-                lastStatePublishedAt = 0;
-            }
-        }
-        else if (controlCommandAllowed && pendingFanLevelCommand >= 0)
+        else if (regularControlAllowed && pendingFanLevelCommand >= 0)
         {
             const uint8_t level = static_cast<uint8_t>(
                 pendingFanLevelCommand
@@ -530,6 +633,8 @@ namespace MqttManager
         {
             publishAvailability(deviceOnline);
         }
+
+        publishStandbyState();
 
         if (
             lastStatePublishedAt == 0

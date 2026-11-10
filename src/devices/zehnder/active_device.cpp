@@ -15,6 +15,94 @@
 
 namespace
 {
+    enum class StandbyExitAction { None, Automatic, Manual, Standby };
+
+    struct StandbyExit
+    {
+        bool pending = false;
+        StandbyExitAction action = StandbyExitAction::None;
+        uint32_t requestedAt = 0;
+        uint32_t deviceStateCount = 0;
+    };
+
+    StandbyExit standbyExit;
+
+    const ZehnderDecoder::SensorValue* getFreshDeviceState()
+    {
+        // The normal PDO poll takes about 18 seconds for a full cycle.
+        constexpr uint32_t DEVICE_STATE_MAX_AGE_MS = 40000;
+        if (!ZehnderDecoder::isOnline())
+        {
+            return nullptr;
+        }
+
+        for (size_t index = 0; index < ZehnderDecoder::getSensorCount(); index++)
+        {
+            if (ZehnderDecoder::getPdoId(index) != 16)
+            {
+                continue;
+            }
+
+            const auto& state = ZehnderDecoder::getSensorValue(index);
+            if (state.valid && millis() - state.updatedAtMs <= DEVICE_STATE_MAX_AGE_MS)
+            {
+                return &state;
+            }
+
+            break;
+        }
+
+        return nullptr;
+    }
+
+    bool requestStandbyExit(const StandbyExitAction action)
+    {
+        if (standbyExit.pending)
+        {
+            standbyExit.action = action;
+            return true;
+        }
+
+        if (!CanMonitor::stopStandby())
+        {
+            return false;
+        }
+
+        const auto* state = getFreshDeviceState();
+        standbyExit = {true, action, millis(), state ? state->receiveCount : 0};
+        return true;
+    }
+
+    void updateStandbyExit()
+    {
+        // The device publishes its state on changes and on the PDO poll.
+        constexpr uint32_t STANDBY_EXIT_TIMEOUT_MS = 25000;
+        if (!standbyExit.pending)
+        {
+            return;
+        }
+
+        const auto* state = getFreshDeviceState();
+        if (state && state->receiveCount != standbyExit.deviceStateCount && state->rawValue != 6)
+        {
+            const StandbyExitAction action = standbyExit.action;
+            standbyExit = {};
+            if (action == StandbyExitAction::Standby)
+            {
+                ActiveDevice::setStandby(true);
+            }
+            else if (action != StandbyExitAction::None)
+            {
+                ActiveDevice::setVentilationMode(action == StandbyExitAction::Manual);
+            }
+        }
+        else if (millis() - standbyExit.requestedAt >= STANDBY_EXIT_TIMEOUT_MS)
+        {
+            standbyExit = {};
+            Serial.println("Standby-Ende von Zehnder nicht bestaetigt");
+        }
+    }
+
     bool isBoostActive()
     {
         for (
@@ -133,6 +221,7 @@ namespace ActiveDevice
     {
         CanMonitor::update();
         ZehnderPoller::update();
+        updateStandbyExit();
     }
 
     bool setBoost(const bool active)
@@ -148,6 +237,45 @@ namespace ActiveDevice
         return active
             ? CanMonitor::startBoost60Minutes()
             : CanMonitor::stopBoost();
+    }
+
+    StandbyState getStandbyState()
+    {
+        const auto* state = getFreshDeviceState();
+        if (!state)
+        {
+            return StandbyState::Unknown;
+        }
+
+        return state->rawValue == 6 ? StandbyState::On : StandbyState::Off;
+    }
+
+    bool setStandby(const bool active)
+    {
+        if (!active)
+        {
+            return requestStandbyExit(StandbyExitAction::None);
+        }
+
+        if (standbyExit.pending)
+        {
+            standbyExit.action = StandbyExitAction::Standby;
+            return true;
+        }
+
+        const StandbyState state = getStandbyState();
+        if (state == StandbyState::Unknown)
+        {
+            Serial.println("Standby-Start abgelehnt: Anlagenzustand unbekannt");
+            return false;
+        }
+
+        return state == StandbyState::On || CanMonitor::startStandbyContinuous();
+    }
+
+    bool isStandbyTransitionPending()
+    {
+        return standbyExit.pending || CanMonitor::isStandbyStartPending();
     }
 
     bool setFanLevel(const uint8_t level)
@@ -187,6 +315,14 @@ namespace ActiveDevice
                 "Betriebsart-Befehl abgelehnt: Zehnder ist nicht online"
             );
             return false;
+        }
+
+        if (standbyExit.pending || CanMonitor::standbyNeedsStop()
+            || getStandbyState() != StandbyState::Off)
+        {
+            return requestStandbyExit(
+                manual ? StandbyExitAction::Manual : StandbyExitAction::Automatic
+            );
         }
 
         if (isBoostActive())
@@ -302,6 +438,17 @@ namespace ActiveDevice
 
         json += ",\"boost_remaining_s\":";
         json += String(getBoostRemainingSeconds());
+
+        json += ",\"standby_active\":";
+        const StandbyState standbyState = getStandbyState();
+        if (standbyState == StandbyState::Unknown)
+        {
+            json += "null";
+        }
+        else
+        {
+            json += standbyState == StandbyState::On ? "true" : "false";
+        }
 
         json += ",\"bridge_health\":\"";
         json += getBridgeHealthText();

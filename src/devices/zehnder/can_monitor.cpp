@@ -25,6 +25,20 @@ namespace
     constexpr uint8_t RMI_SEQUENCE_MASK = 0x03;
     constexpr size_t RMI_FRAGMENT_DATA_SIZE = 7;
 
+    constexpr uint32_t RMI_MULTIPART_FLAG = 1U << 14;
+    constexpr uint32_t RMI_ERROR_FLAG = 1U << 15;
+    constexpr uint32_t STANDBY_CHECK_TIMEOUT_MS = 2000;
+
+    constexpr uint8_t READ_BOOST_TIMER[] = {0x83, 0x15, 0x01, 0x06};
+    constexpr uint8_t READ_STANDBY_TIMER[] = {0x83, 0x15, 0x04, 0x01};
+    constexpr uint8_t START_STANDBY_CONTINUOUS[] = {
+        0x84, 0x15, 0x04, 0x01,
+        0x00, 0x00, 0x00, 0x00, // Sofort starten.
+        0xFF, 0xFF, 0xFF, 0xFF, // Laufzeit -1: bis zum Beenden.
+        0x01
+    };
+    constexpr uint8_t STOP_STANDBY[] = {0x85, 0x15, 0x04, 0x01};
+
     constexpr uint8_t BOOST_60_MINUTES_COMMAND[] = {
         0x84, 0x15, 0x01, 0x06,
         0x00, 0x00, 0x00, 0x00,
@@ -113,6 +127,13 @@ namespace
     uint64_t receivedFrameCount = 0;
     uint32_t lastFrameTimestamp = 0;
     uint8_t rmiSequence = 0;
+
+    enum class StandbyCheck { None, BoostTimer, StandbyTimer };
+    StandbyCheck standbyCheck = StandbyCheck::None;
+    uint8_t standbyCheckSequence = 0;
+    uint32_t standbyCheckSentAt = 0;
+    bool standbyCheckInactiveFragment = false;
+    bool standbyStartIssued = false;
 
     uint32_t createRmiIdentifier(
         const bool multiMessage,
@@ -255,6 +276,71 @@ namespace
         }
 
         return true;
+    }
+
+    bool requestStandbyCheck(const StandbyCheck check)
+    {
+        const auto& request = check == StandbyCheck::BoostTimer
+            ? READ_BOOST_TIMER
+            : READ_STANDBY_TIMER;
+
+        if (!sendRmiCommand(request, sizeof(request)))
+        {
+            return false;
+        }
+
+        standbyCheck = check;
+        standbyCheckSequence = rmiSequence;
+        standbyCheckSentAt = millis();
+        standbyCheckInactiveFragment = false;
+        return true;
+    }
+
+    void handleStandbyCheckReply(const twai_message_t& message)
+    {
+        if (standbyCheck == StandbyCheck::None || !message.extd || message.rtr)
+        {
+            return;
+        }
+
+        const uint32_t expectedId = RMI_IDENTIFIER_PREFIX
+            | VENTILATION_UNIT_NODE_ID
+            | (static_cast<uint32_t>(LOCAL_NODE_ID) << 6)
+            | (static_cast<uint32_t>(standbyCheckSequence) << 17);
+        const uint32_t flags = RMI_MULTIPART_FLAG | RMI_ERROR_FLAG;
+
+        if ((message.identifier & ~flags) != expectedId)
+        {
+            return;
+        }
+
+        // GETTIMERENTRY returns fourteen bytes in two seven-byte fragments.
+        const bool timerFragment =
+            (message.identifier & flags) == RMI_MULTIPART_FLAG
+            && message.data_length_code == 8;
+        if (timerFragment && message.data[0] == 0x00)
+        {
+            standbyCheckInactiveFragment = message.data[1] == 0;
+            return;
+        }
+
+        const StandbyCheck completed = standbyCheck;
+        standbyCheck = StandbyCheck::None;
+        if (!timerFragment || message.data[0] != 0x81 || !standbyCheckInactiveFragment)
+        {
+            Serial.println("Standby-Start abgelehnt: Timer aktiv oder Antwort ungueltig");
+            return;
+        }
+
+        if (completed == StandbyCheck::BoostTimer)
+        {
+            requestStandbyCheck(StandbyCheck::StandbyTimer);
+        }
+        else if (sendRmiCommand(START_STANDBY_CONTINUOUS, sizeof(START_STANDBY_CONTINUOUS)))
+        {
+            standbyStartIssued = true;
+            Serial.println("Zehnder Dauer-Standby angefordert");
+        }
     }
 
     String uint64ToString(const uint64_t value)
@@ -547,6 +633,35 @@ namespace CanMonitor
         );
     }
 
+    bool startStandbyContinuous()
+    {
+        return isStandbyStartPending() || requestStandbyCheck(StandbyCheck::BoostTimer);
+    }
+
+    bool stopStandby()
+    {
+        // Stoppt auch einen noch laufenden Start und benoetigt keinen lokalen Startstatus.
+        standbyCheck = StandbyCheck::None;
+        if (!sendRmiCommand(STOP_STANDBY, sizeof(STOP_STANDBY)))
+        {
+            return false;
+        }
+
+        standbyStartIssued = false;
+        return true;
+    }
+
+    bool standbyNeedsStop()
+    {
+        // The start frame can be queued before the appliance reports Standby.
+        return standbyStartIssued || isStandbyStartPending();
+    }
+
+    bool isStandbyStartPending()
+    {
+        return standbyCheck != StandbyCheck::None;
+    }
+
     bool setFanLevel(const uint8_t level)
     {
         if (level > 3)
@@ -686,6 +801,12 @@ namespace CanMonitor
             return;
         }
 
+        if (isStandbyStartPending() && millis() - standbyCheckSentAt >= STANDBY_CHECK_TIMEOUT_MS)
+        {
+            standbyCheck = StandbyCheck::None;
+            Serial.println("Standby-Start abgelehnt: Timerabfrage ohne vollstaendige Antwort");
+        }
+
         twai_message_t message {};
 
         for (
@@ -713,6 +834,7 @@ namespace CanMonitor
             }
 
             storeFrame(message);
+            handleStandbyCheckReply(message);
         }
     }
 

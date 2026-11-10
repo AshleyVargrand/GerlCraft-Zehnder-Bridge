@@ -3,10 +3,10 @@
 Dieses Verzeichnis enthaelt die Home-Assistant-Custom-Card fuer die Zehnder
 ComfoAir Q. Es gibt zwei moegliche Kartentypen:
 
-- **Signature Card v1.5.3**: grosse Anlagenansicht mit ruhigem
+- **Signature Card v1.5.5**: grosse Anlagenansicht mit ruhigem
   Waermetauscher-Luefter, groesseren Live-Werten, Boost-Bedienung und
   verstaendlicher Filterwarnung.
-- **Klassische Card v1.1.2**: kompaktere Anlagenkarte mit animierten
+- **Klassische Card v1.1.3**: kompaktere Anlagenkarte mit animierten
   Luftstroemen, Boost-Bedienung und den bisherigen Messwert-Kacheln.
 
 ## Voraussetzung: MQTT zuerst einrichten
@@ -19,8 +19,7 @@ Steuerelemente dieser Karten.** Vor dem Kopieren der JavaScript-Datei:
 2. In der Web-Konfiguration der Bridge denselben Broker mit LAN-IP, Port und
    Zugangsdaten eintragen. Auf `/diagnostics` muss MQTT `Verbunden` anzeigen.
 3. In Home Assistant unter der MQTT-Integration das Zehnder-Geraet und seine
-   aktuellen Messwerte pruefen. Fuer alle Steuerungen Firmware **1.2.0**
-   verwenden.
+   aktuellen Messwerte pruefen. Für Standby Firmware **1.3.0** verwenden.
 
 Die [MQTT-Einrichtung](https://github.com/AshleyVargrand/GerlCraft-Zehnder-Bridge/blob/main/docs/INSTALLATION.md#mqtt-vorbereiten)
 beschreibt diese Schritte im Detail. Die Karten verbinden sich nicht direkt
@@ -29,9 +28,9 @@ keine Zehnder-Entitaeten. Node-RED und der Bad-Feuchtesensor sind optional.
 
 Beide Karten verwenden die von der Bridge per MQTT Discovery angelegten
 Home-Assistant-Entitaeten. Als schreibende Zugriffe sind der auf 60 Minuten
-begrenzte Boost und die normale Luefterstufenwahl 0 bis 3 freigegeben. Andere
-Anlagenfunktionen bleiben reine Anzeigen. Die Betriebsart kann getrennt auf
-Automatik oder auf einen dauerhaften manuellen Betrieb gesetzt werden.
+begrenzte Boost, die Luefterstufen 0 bis 3 und die Wahl der Betriebsart
+freigegeben. Ab Firmware 1.3.0 zeigt die Betriebsart neben Automatik und
+Manuell auch Standby.
 
 ## Vorschau
 
@@ -39,7 +38,7 @@ Automatik oder auf einen dauerhaften manuellen Betrieb gesetzt werden.
 
 ## Welche Variante soll ich nehmen?
 
-Fuer ein neues Dashboard wird die **Signature Card v1.5.3** empfohlen.
+Fuer ein neues Dashboard wird die **Signature Card v1.5.5** empfohlen.
 Sie ist besser fuer grosse Tablet- oder Wanddisplay-Ansichten lesbar und zeigt
 die Filterwarnung direkt verstaendlich an.
 
@@ -63,7 +62,7 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 3. Eine JavaScript-Modulressource hinzufuegen:
 
    ```text
-   /local/gerlcraft-zehnder-card.js?v=1.1.2
+   /local/gerlcraft-zehnder-card.js?v=1.1.3
    ```
 
 4. Die Karte im Dashboard so einbinden:
@@ -75,7 +74,7 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 
 5. Speichern und den Browser einmal vollstaendig neu laden.
 
-## Installation: Signature Card v1.5.3
+## Installation: Signature Card v1.5.5
 
 1. Die Signature-JavaScript-Datei nach Home Assistant kopieren:
 
@@ -88,7 +87,7 @@ Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 3. Eine JavaScript-Modulressource hinzufuegen:
 
    ```text
-   /local/zehnder_card_v145_final.js?v=1.5.3
+   /local/zehnder_card_v145_final.js?v=1.5.5
    ```
 
 4. Die Karte im Dashboard so einbinden:
@@ -123,9 +122,29 @@ type: custom:gerlcraft-zehnder-card-v14
 Die Signature-Seite erscheint als Reiter `Zehnder` unter dem URL-Pfad
 `zehnder-signature`. Die klassische Ansicht verwendet `zehnder-card`.
 
+## Kompakte Darstellung und volle Hoehe ab Version 1.5.5
+
+Die Signature Card verwendet standardmaessig kompaktere Abstaende und
+Messwertfelder. Mit `full_height: true` fuellt sie weiterhin die Bildschirmhoehe
+wie bisher aus; die untere Infoleiste bleibt am unteren Kartenrand.
+Schriftgroessen, Messwerte und Steuerfunktionen bleiben erhalten.
+
+Die beiden Optionen sind unabhaengig voneinander:
+
+```yaml
+compact: true
+full_height: true
+```
+
+Beide Optionen sind standardmaessig aktiv. `compact: false` stellt die
+bisherigen grosszuegigen Abstaende wieder her. `full_height: false` begrenzt
+die Kartenhoehe auf ihren Inhalt.
+Zum Update die JavaScript-Datei ersetzen und die Ressourcen-URL auf
+`/local/zehnder_card_v145_final.js?v=1.5.5` setzen, danach vollstaendig neu laden.
+
 ## Luftfeuchtigkeit in den Luftstroemen
 
-Signature Card **1.5.3** und klassische Card **1.1.2** zeigen unter jeder
+Signature Card **1.5.4** und klassische Card **1.1.3** zeigen unter jeder
 Temperatur die relative Luftfeuchtigkeit mit Tropfensymbol: Aussenluft,
 Zuluft, Abluft und Fortluft. Die Werte kommen direkt von den vorhandenen
 Zehnder-MQTT-Sensoren. Ein Firmware-Update ist dafuer nicht notwendig.
@@ -215,8 +234,13 @@ Ab Firmware 1.2.0 wird die Select-Entitaet fuer Abwesend, Niedrig, Mittel und
 Hoch sowie eine zweite Select-Entitaet fuer Automatik und Manuell automatisch
 angelegt. Die Karten sperren beide Auswahlen waehrend eines aktiven Boosts und
 warten nach jeder Auswahl auf die Rueckmeldung der Anlage. Automatik verwendet
-eine zeitbegrenzte Stufenwahl; Manuell behaelt die gewaehlte Stufe bei, bis
-wieder Automatik gewaehlt wird.
+eine zeitbegrenzte Stufenwahl. Manuell behält die gewählte Stufe bei, bis
+wieder Automatik gewählt wird.
+
+Mit Firmware 1.3.0 ergänzt die Karte den Knopf **Standby**, sobald die
+MQTT-Entität diese Betriebsart anbietet. Die Lüfter bleiben stehen, bis
+Automatik oder Manuell gewählt oder der separate Standby-Schalter ausgeschaltet
+wird.
 
 ## Optionaler Feuchtesensor
 

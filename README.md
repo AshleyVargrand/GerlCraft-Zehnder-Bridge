@@ -22,7 +22,7 @@ keine Boost-, Luefterstufen- oder Betriebsartsteuerung in Home Assistant.
 die Bridge einrichten und zuletzt das Dashboard hinzufuegen.** Node-RED und
 ein Bad-Feuchtesensor sind nur fuer die optionale Feuchteautomation notwendig.
 
-Version 1.2.0 bietet einen Browser-Installer, ein Setup-WLAN, eine geschuetzte
+Version 1.3.0 bietet einen Browser-Installer, ein Setup-WLAN, eine geschuetzte
 Web-Konfiguration, OTA-Updates sowie ein fertiges Home-Assistant-Paket mit
 eigener responsiver Anlagenkarte. Zusaetzlich kann ein zeitlich begrenzter
 60-Minuten-Boost ueber MQTT und Home Assistant gestartet oder vorzeitig
@@ -31,9 +31,11 @@ Home-Assistant-Sensor bereitgestellt. Fuer einen Shelly BLU H&T ZB liegt ein
 Node-RED-Flow fuer den automatischen Bad-Boost bei. Zusaetzlich kann die
 normale Luefterstufe in Home Assistant zwischen Abwesend, Niedrig, Mittel und
 Hoch gewaehlt werden. Die Auswahl wird erst nach der Rueckmeldung der Zehnder
-als aktiv angezeigt. Ueber eine getrennte Auswahl kann zwischen dem
-zeitgesteuerten Automatikbetrieb und einem dauerhaften manuellen Betrieb
-gewechselt werden. Andere Steuerbefehle bleiben gesperrt.
+als aktiv angezeigt. Die Betriebsart bietet **Automatik**, **Manuell** und
+**Standby**. Im Dauer-Standby stehen beide Lüfter nach dem Auslaufen. Die
+Auswahl von Automatik oder Manuell beendet den Standby und setzt die
+gewählte Betriebsart. Der separate MQTT-Schalter **Standby** ist ebenfalls
+für die Bedienung und für Automationen verfügbar.
 
 ## Installation
 
@@ -61,7 +63,7 @@ Kurzablauf:
 9. Auf der Bridge `MQTT: Verbunden` und in Home Assistant das Zehnder-Geraet
    unter der MQTT-Integration pruefen. Erst danach das Dashboard installieren.
 
-## Funktionsumfang von v1.2.0
+## Funktionsumfang von v1.3.0
 
 - Getestet mit Zehnder ComfoAir Q350
 - CAN-Kommunikation mit M5Stack AtomS3 Lite und Atomic CAN Base
@@ -81,7 +83,8 @@ Kurzablauf:
 - echte Boost-Restzeit aus der Q350 als Home-Assistant-Sensor
 - MQTT-Booststeuerung mit fester Befehls-Whitelist
 - Home-Assistant-Auswahl fuer die Luefterstufen 0 bis 3
-- Home-Assistant-Auswahl fuer Automatik- und manuellen Dauerbetrieb
+- Home-Assistant-Auswahl fuer Automatik, Manuell und Standby
+- Separater Home-Assistant-Schalter fuer Dauer-Standby
 - MQTT-Lueftersteuerung mit Wertepruefung und Rueckmeldung der Anlage
 - Node-RED-Flow fuer automatischen Bad-Boost mit Shelly BLU H&T ZB
 
@@ -176,7 +179,7 @@ Ein fertiges Dashboard liegt im Ordner [`home-assistant`](home-assistant/).
 Voraussetzung sind bereits vorhandene Zehnder-Entitaeten in der
 MQTT-Integration. Enthalten sind:
 
-- zwei eigene Anlagenkarten: Signature 1.5.3 und Klassisch 1.1.2, jeweils mit
+- zwei eigene Anlagenkarten: Signature 1.5.5 und Klassisch 1.1.2, jeweils mit
   animierten Luftstroemen und Steuerung,
 - eine native Variante ohne Zusatzkarten,
 - eine leicht animierte Variante mit `button-card`,
@@ -242,8 +245,8 @@ Die Bridge erzeugt zusaetzlich folgende Werte:
 
 Alle Kennzahlen werden ausschliesslich aus gelesenen Daten berechnet. Als
 schreibende Anlagenzugriffe sind der zeitbegrenzte Boost, die Auswahl der
-Luefterstufen 0 bis 3 und das Umschalten zwischen Automatik und Manuell
-freigegeben. Beliebige CAN- oder RMI-Kommandos koennen weder ueber MQTT noch
+Luefterstufen 0 bis 3, Automatik und Manuell sowie das Starten und Beenden
+des Dauer-Standbys freigegeben. Beliebige CAN- oder RMI-Kommandos koennen weder ueber MQTT noch
 ueber die Weboberflaeche gesendet werden.
 
 ## Lizenz und Quellen
