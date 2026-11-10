@@ -10,9 +10,9 @@ diese Entitaeten; sie holen keine Daten direkt von der Bridge-IP und richten
 keinen Broker ein. Die Schritt-fuer-Schritt-Einrichtung steht in der
 [Installationsanleitung](https://github.com/AshleyVargrand/GerlCraft-Zehnder-Bridge/blob/main/docs/INSTALLATION.md#mqtt-vorbereiten).
 
-Aktueller Stand: Firmware **1.2.0**, Signature Card **1.5.5**, klassische Card
-**1.1.2**. Node-RED und ein Feuchtesensor sind fuer die normale Anzeige und
-manuelle Steuerung nicht erforderlich.
+Das Paket gehoert zu Firmware **1.3.0** und enthaelt die Signature Card
+**1.5.5** und die klassische Card **1.1.3**. Fuer die normale Anzeige und
+manuelle Steuerung sind Node-RED und ein Feuchtesensor optional.
 
 Dieses Paket enthaelt fertige Dashboards und einzelne Ansichten fuer die
 Zehnder ComfoAir Bridge. Die nativen Dashboard-Varianten sind reine Anzeigen.

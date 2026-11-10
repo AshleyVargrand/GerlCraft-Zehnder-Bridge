@@ -7,7 +7,7 @@ empfohlene Weg fuer neue Nutzer ist der Browser-Installer mit anschliessender
 Einrichtung ueber das Setup-WLAN. Visual Studio Code und PlatformIO werden nur
 fuer eigene Builds oder Entwickler-Updates benoetigt.
 
-Stand: **Firmware 1.2.0**, Signature Card **1.5.5**, klassische Card **1.1.2**.
+Stand **Firmware 1.3.0**, Signature Card **1.5.5**, klassische Card **1.1.3**.
 Firmware und Dashboard-Karten haben unterschiedliche Versionsnummern.
 
 > **Fuer Home Assistant, die Dashboards und deren Steuerung ist MQTT Pflicht.**
@@ -354,6 +354,10 @@ Mittel    (2)
 Hoch      (3)
 ```
 
+Die Bridge akzeptiert fuer die Luefterstufe nur diese vier Werte. Bei aktivem
+Boost lehnt sie Stufenaenderungen ab. Home Assistant zeigt die neue Stufe erst
+dann als aktiv an, wenn die Zehnder sie im MQTT-Zustand zurueckmeldet.
+
 Die zweite Auswahl `Betriebsart einstellen` bestimmt den Lüftungsbetrieb.
 Ab Firmware v1.3.0 bietet sie auch `Standby`.
 
@@ -371,17 +375,15 @@ beendet den Standby und setzt anschließend die gewählte Betriebsart. Über
 Anzeige folgt der Rückmeldung der Anlage. Beim Test an der Q350 meldeten
 beide Lüfter nach rund 25 Sekunden 0 U/min.
 
-Die Bridge akzeptiert nur diese vier Werte. Eine Auswahl wird waehrend eines
-aktiven Boosts abgelehnt. Home Assistant zeigt die neue Stufe erst dann als
-aktiv an, wenn sie von der Zehnder wieder im MQTT-Zustand gemeldet wurde.
-Nur die zeitbegrenzte Stufenwahl im Automatikbetrieb laeuft aus. Bei
-`Manuell` muss fuer die Rueckkehr zur Automatik bewusst umgeschaltet werden.
-
 Fuer den ersten Funktionstest die Betriebsart auf `Automatik` belassen,
 zwischen `Niedrig` und `Mittel` wechseln und kontrollieren, ob sich die
 angezeigte Luefterstufe und die Volumenstroeme entsprechend aktualisieren.
 Danach `Manuell` kurz testen und anschliessend bewusst wieder auf `Automatik`
 zurueckstellen. `Abwesend` und `Hoch` erst danach gezielt pruefen.
+
+Fuer den Standby-Test bei inaktivem Boost `Standby` waehlen und warten, bis
+beide Luefter mit 0 U/min gemeldet werden. Anschliessend `Automatik` waehlen
+und pruefen, ob die Luefter wieder anlaufen.
 
 Die bestehenden MQTT-Topics und Home-Assistant-Unique-IDs bleiben auch bei
 Updates unveraendert. Dadurch entstehen keine doppelten Entitaeten.

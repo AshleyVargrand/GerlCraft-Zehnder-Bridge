@@ -179,7 +179,7 @@ Ein fertiges Dashboard liegt im Ordner [`home-assistant`](home-assistant/).
 Voraussetzung sind bereits vorhandene Zehnder-Entitaeten in der
 MQTT-Integration. Enthalten sind:
 
-- zwei eigene Anlagenkarten: Signature 1.5.5 und Klassisch 1.1.2, jeweils mit
+- Signature Card 1.5.5 und klassische Card 1.1.3, jeweils mit
   animierten Luftstroemen und Steuerung,
 - eine native Variante ohne Zusatzkarten,
 - eine leicht animierte Variante mit `button-card`,
@@ -217,6 +217,11 @@ pio run -e atoms3-zehnder -t upload
 ```
 
 ## OTA
+
+Vor dem Upload die Bridge-IP als `upload_port` in `platformio.ini` eintragen
+und das gespeicherte Admin-/OTA-Passwort als `GERLCRAFT_OTA_PASSWORD` setzen.
+Die [OTA-Anleitung](docs/INSTALLATION.md#10-spaetere-updates-per-wlan)
+zeigt die Schritte fuer PowerShell.
 
 ```powershell
 pio run -e atoms3-zehnder-ota -t upload

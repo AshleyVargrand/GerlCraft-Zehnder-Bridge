@@ -48,6 +48,9 @@ moechtest oder bereits ein Dashboard mit dem alten Kartentyp nutzt.
 Wichtig: Wenn beide Varianten parallel installiert werden, muessen sie in
 Home Assistant unter unterschiedlichen Dateinamen in `/config/www/` liegen.
 
+Wenn du den Ordner `www` neben `configuration.yaml` neu anlegst, starte Home
+Assistant einmal neu, bevor du die JavaScript-Ressource eintraegst.
+
 ## Installation: Klassische Card
 
 1. Die klassische JavaScript-Datei aus diesem Verzeichnis nach Home Assistant
@@ -144,10 +147,10 @@ Zum Update die JavaScript-Datei ersetzen und die Ressourcen-URL auf
 
 ## Luftfeuchtigkeit in den Luftstroemen
 
-Signature Card **1.5.4** und klassische Card **1.1.3** zeigen unter jeder
-Temperatur die relative Luftfeuchtigkeit mit Tropfensymbol: Aussenluft,
-Zuluft, Abluft und Fortluft. Die Werte kommen direkt von den vorhandenen
-Zehnder-MQTT-Sensoren. Ein Firmware-Update ist dafuer nicht notwendig.
+Beide Karten zeigen die relative Luftfeuchtigkeit mit Tropfensymbol unter
+den Temperaturen fuer Aussenluft, Zuluft, Abluft und Fortluft. Die Werte
+kommen direkt von den vorhandenen Zehnder-MQTT-Sensoren. Ein Firmware-Update
+ist dafuer nicht notwendig.
 Ein Klick auf den Feuchtewert oeffnet den Verlauf des jeweiligen Sensors.
 Fehlende oder ungueltige Werte werden als `- %` dargestellt.
 

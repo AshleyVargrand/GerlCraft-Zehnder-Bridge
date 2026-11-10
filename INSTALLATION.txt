@@ -1,4 +1,4 @@
-Zehnder ComfoAir Bridge - v1.0.0 - Schnellstart
+Zehnder ComfoAir Bridge - Schnellstart
 
 Ausfuehrliche Anleitung
 -----------------------
@@ -7,8 +7,8 @@ Die vollstaendige, anfaengerfreundliche GitHub-Anleitung befindet sich in:
 
 docs/INSTALLATION.md
 
-Sie enthaelt Hardware, Sicherheit, USB-Upload, Setup-WLAN, Anschluss an die
-Zehnder, Home Assistant, OTA-Updates und Fehlerhilfe.
+Dort stehen die aktuellen Firmware- und Kartenversionen sowie die Schritte
+fuer Hardware, USB-Upload, Setup-WLAN, Zehnder-Anschluss, Home Assistant und OTA.
 
 Schnellstart ueber den Browser
 ------------------------------
@@ -110,8 +110,9 @@ Kompilieren ueber /config geaendert werden.
 Nach erfolgreicher Einrichtung kann OTA genutzt werden.
 
 In platformio.ini muss upload_port zur aktuellen IP-Adresse der Bridge passen.
-Das OTA-Passwort ist das gespeicherte Admin-/OTA-Passwort.
+In PowerShell das gespeicherte Admin-/OTA-Passwort fuer diese Sitzung setzen.
 
+$env:GERLCRAFT_OTA_PASSWORD = "DEIN_ADMIN_OTA_PASSWORT"
 pio run -e atoms3-zehnder-ota -t upload
 
 8. Optional fuer Entwickler
